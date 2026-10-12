@@ -28,7 +28,7 @@
 - `isNil`, `isNotNil`
 - `formatByteCount`
 - `fileExtension`, `fileBaseName`
-- `downloadBlob`
+- `downloadUrl`, `downloadBlob`, `downloadText`
 - `DisposableScope.defer`, `DisposableScope.signal`
 - 타입 가드: `isString`, `isNumber`, `isBoolean`, `isFunction`, `isPlainObject`, `isNonEmptyArray`, `isPromiseLike`, `isError`
 - 바이너리: `isUint8Array`, `toUint8Array`, `concatUint8Arrays`, `areUint8ArraysEqual`, `compareUint8Arrays`, `indexOfUint8Array`, `includesUint8Array`, `stringToUint8Array`, `uint8ArrayToString`, `uint8ArrayToBase64`, `base64ToUint8Array`, `stringToBase64`, `base64ToString`, `uint8ArrayToHex`, `hexToUint8Array`

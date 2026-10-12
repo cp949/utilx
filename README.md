@@ -30,7 +30,7 @@ pnpm add @cp949/utilx
 
 이름은 `trim`처럼 널리 알려진 것은 그대로 쓰고, 그 밖에는 동작이 보이게 서술적으로 짓는다. 분류가 애매한 함수를 모아 두는 `misc` 같은 영역은 만들지 않는다.
 
-DOM이 필요한 `downloadBlob`, `ObjectUrlRegistry`, `hasGetUserMedia`는 호출할 때만 `document`, `URL.createObjectURL`, `navigator`에 접근한다. import만으로는 접근하지 않으므로 서버에서 import해도 안전하다.
+DOM이 필요한 `downloadUrl`, `downloadBlob`, `downloadText`, `ObjectUrlRegistry`, `hasGetUserMedia`는 호출할 때만 `document`, `URL.createObjectURL`, `navigator`에 접근한다. import만으로는 접근하지 않으므로 서버에서 import해도 안전하다.
 
 ### 문자열
 
@@ -225,12 +225,19 @@ await nextAnimationFrame(); // 다음 requestAnimationFrame까지
 
 - `nextAnimationFrame`은 `requestAnimationFrame`이 없으면 `setTimeout(0)` 뒤에 완료한다. 브라우저는 숨겨진 탭에서 프레임을 멈추므로, 그동안은 완료되지 않는다.
 
-### blob
+### 다운로드·blob
 
 ```ts
-import { downloadBlob, ObjectUrlRegistry } from "@cp949/utilx";
+import {
+  downloadBlob,
+  downloadText,
+  downloadUrl,
+  ObjectUrlRegistry,
+} from "@cp949/utilx";
 
+downloadUrl("/reports/2026.pdf", "report.pdf");
 downloadBlob(new Blob(["hello"], { type: "text/plain" }), "hello.txt");
+downloadText("a,b\n1,2", "data.csv", { mimeType: "text/csv;charset=utf-8" });
 
 const registry = new ObjectUrlRegistry();
 const url = registry.acquire(file); // 같은 Blob이면 같은 URL, 참조 횟수 +1
@@ -239,7 +246,9 @@ registry.revokeAll(); // 모두 해제, 계속 사용 가능
 registry.close(); // 모두 해제하고 닫음, 되돌릴 수 없음
 ```
 
-- `downloadBlob`은 `<a download>` 방식이다. `download` 속성이 없는 환경에서는 동작하지 않는다. 사용자 제스처 안에서 호출해야 하며, object URL은 40초 뒤에 해제한다.
+- 세 함수 모두 `<a download>` 방식이다. `download` 속성이 없는 환경에서는 동작하지 않는다. 사용자 제스처 안에서 호출해야 한다.
+- `downloadUrl`은 같은 출처의 URL, `blob:`, `data:` URL에서 동작한다. 다른 출처의 URL은 브라우저가 `download` 속성을 무시해 내려받지 않고 그 주소로 이동할 수 있다. 이때는 서버가 `Content-Disposition: attachment`를 보내야 한다.
+- `downloadBlob`, `downloadText`가 만든 object URL은 40초 뒤에 해제한다.
 - `ObjectUrlRegistry`는 GC 때 자동으로 해제하지 않는다. 등록된 Blob은 해제하기 전까지 메모리에 남는다.
 - **React StrictMode**: effect cleanup에서 `close()`를 부른 인스턴스를 재실행에서 다시 쓰면 `acquire()`가 예외를 던진다. 인스턴스를 effect 안에서 만들거나 cleanup에서 `revokeAll()`만 부른다.
 
