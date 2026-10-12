@@ -1,7 +1,7 @@
 {
   "name": "@cp949/utilx",
   "version": "2.0.0",
-  "description": "브라우저용 문자열, 바이트 표기, 파일명, blob 다운로드 유틸. 런타임 의존성 0",
+  "description": "브라우저용 문자열, 바이트 표기, 파일명, 버퍼, cleanup scope, blob 유틸. 런타임 의존성 0",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -24,6 +24,11 @@
     "bytes",
     "file-size",
     "filename",
+    "buffer",
+    "disposable",
+    "cleanup",
+    "abort",
+    "blob",
     "download",
     "browser",
     "esm"
@@ -36,17 +41,29 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./string": {
-      "types": "./dist/string/index.d.ts",
-      "default": "./dist/string/index.js"
+    "./async": {
+      "types": "./dist/async/index.d.ts",
+      "default": "./dist/async/index.js"
+    },
+    "./buffer": {
+      "types": "./dist/buffer/index.d.ts",
+      "default": "./dist/buffer/index.js"
     },
     "./bytes": {
       "types": "./dist/bytes/index.d.ts",
       "default": "./dist/bytes/index.js"
     },
+    "./disposable": {
+      "types": "./dist/disposable/index.d.ts",
+      "default": "./dist/disposable/index.js"
+    },
     "./file": {
       "types": "./dist/file/index.d.ts",
       "default": "./dist/file/index.js"
+    },
+    "./string": {
+      "types": "./dist/string/index.d.ts",
+      "default": "./dist/string/index.js"
     },
     "./web": {
       "types": "./dist/web/index.d.ts",

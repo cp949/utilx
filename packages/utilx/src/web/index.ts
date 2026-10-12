@@ -33,3 +33,5 @@ export function downloadBlob(blob: Blob, fileName: string): void {
     }, REVOKE_DELAY_MS);
   }
 }
+
+export { URLCreateRegistry } from "./url-registry.js";
