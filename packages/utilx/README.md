@@ -182,6 +182,15 @@ pnpm verify
 | `pnpm check-types`    | 소스와 테스트의 타입 검사                                                                              |
 | `pnpm test`           | 단위 테스트                                                                                            |
 
+### tree-shaking 지침
+
+사용하지 않는 export가 번들에서 빠지도록 다음을 지킨다. 자동 검사는 없고 리뷰에서 확인한다.
+
+- 모듈 최상위에서 실행되는 코드를 두지 않는다. 상수와 함수, 클래스 선언만 둔다. 모듈 최상위의 `new`, 전역 변경, 정적 초기화 블록(`static {}`)은 금지한다.
+- 이름 있는 export만 쓴다. 기본 export와 객체로 묶은 export는 만들지 않는다.
+- `package.json`의 `"sideEffects": false`를 유지한다.
+- 새 export를 추가하면 그것만 import한 번들에 다른 코드가 딸려 오지 않는지 확인한다. 2.0.0 기준으로 `trim`만 import하면 58바이트(minify, rolldown)다.
+
 Chrome 하한은 `baseline.json` 한 곳에서만 선언한다. 실제 브라우저 실행 검증은 하지 않는다. `check:escompat`은 정적 검사다.
 
 ## 라이선스
