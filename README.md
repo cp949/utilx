@@ -1,6 +1,6 @@
 # @cp949/utilx
 
-브라우저용 문자열, 타입 가드, 바이너리(Uint8Array), 바이트 표기, 파일명, 버퍼, cleanup scope, blob, 미디어 스트림 유틸. 런타임 의존성 0, Chrome 75 하한(ES2019), ESM 전용이다.
+브라우저용 문자열, 타입 가드, 값 비교, 경로, 바이너리(Uint8Array), 바이트 표기, 파일명, 버퍼, cleanup scope, blob, 미디어 스트림 유틸. 런타임 의존성 0, Chrome 75 하한(ES2019), ESM 전용이다.
 
 2.0.0은 1.x의 API를 재설계해 이름과 동작이 바뀌었다. 1.x에서 올리는 경우 아래 [1.x에서 옮기기](#1x에서-옮기기)를 따른다.
 
@@ -44,6 +44,61 @@ isBlank("\u3000"); // true (전각 공백)
 
 - 공백 기준은 `String.prototype.trim()`과 같다.
 - `isBlank`, `isNotBlank`는 타입 가드가 아니다. `false`일 때 `string`이 아닌 쪽으로 좁혀지는 오류를 피하기 위해서다. 좁힌 값이 필요하면 `trimToUndefined`를 쓴다.
+
+```ts
+import {
+  camelCase,
+  isNumericString,
+  limitMaxLength,
+  removePrefix,
+  replaceAll,
+  strlen,
+  truncateMiddle,
+} from "@cp949/utilx";
+
+strlen(null); // 0
+removePrefix("--flag", "-", { repeat: true }); // 'flag'
+replaceAll("a.b.c", ".", "/"); // 'a/b/c'
+truncateMiddle("This is a long string that needs truncating.", { length: 20 }); // 'This is a...ncating.'
+limitMaxLength("a😀b", 2); // 'a' (이모지를 반으로 자르지 않는다)
+camelCase("FOO", "bar"); // 'fooBar'
+isNumericString("1e3"); // false
+```
+
+- `strlen`은 UTF-16 코드 유닛 수(`str.length`)를 돌려준다. 바이트 수나 글자 수가 아니다. `null`/`undefined`는 `0`이다.
+- `replaceAll`은 `String.prototype.replaceAll`(Chrome 85)을 쓸 수 없는 환경을 위한 함수다. 정규식과 `$&` 같은 치환 패턴을 해석하지 않는다. 빈 `search`는 아무것도 바꾸지 않는다.
+- `removePrefix`, `removeSuffix`의 `repeat` 옵션은 붙어 있는 동안 반복해서 제거한다.
+- `limitMaxLength`, `truncateMiddle`은 서로게이트 쌍(이모지 등)을 반으로 자르지 않는다. 결과 길이는 지정한 값 이하다.
+- `pascalCase`, `camelCase`, `kebabToPascal`은 각 단어를 소문자로 만든 뒤 첫 글자만 대문자로 한다. 약어도 단어 하나로 취급해서 `'API'`는 `'Api'`가 된다. 로캘은 따르지 않는다.
+- `isNumericString`은 부호와 소수점만 허용하는 10진수 표기만 `true`다. 빈 문자열, 공백, 지수(`1e3`), 16진수, `Infinity`는 `false`다. `isDigitString`은 ASCII 숫자만 `true`다. 둘 다 타입 가드가 아니다.
+
+### 값 비교
+
+```ts
+import { isDeepEqual, isShallowEqual } from "@cp949/utilx";
+
+isShallowEqual({ a: 1 }, { a: 1 }); // true
+isDeepEqual({ a: [1, { b: 2 }] }, { a: [1, { b: 2 }] }); // true
+isDeepEqual(new Date(1), new Date(2)); // false
+```
+
+- 값은 `Object.is`로 비교한다. `NaN`끼리는 같고 `+0`과 `-0`은 다르다.
+- 배열, 평범한 객체는 요소와 키를 비교한다. `isDeepEqual`은 `Date`(시각), `RegExp`, `Map`(값은 깊게), `Set`(요소는 `SameValueZero`)도 비교하고 순환 참조를 처리한다.
+- 확신할 수 없으면 다르다고 판정한다. 같은 참조가 아닌 클래스 인스턴스, 함수, TypedArray는 다르다.
+- 심볼 키와 프로토타입에서 상속한 키는 비교하지 않는다.
+
+### 경로
+
+```ts
+import { joinPath, normalizePath, parsePath } from "@cp949/utilx";
+
+normalizePath("/a//b/../c/./"); // '/a/c/'
+joinPath("/a", "b", "../c"); // '/a/c'
+parsePath("/home/user/file.tar.gz").ext; // '.gz'
+```
+
+- `/`로 구분하는 POSIX 경로 문자열만 다룬다. 파일 시스템에 접근하지 않는다. URL에는 쓰지 않는다(`http://`의 `//`가 합쳐진다).
+- Node의 `path.posix`와 같은 결과를 낸다. 길이 6 이하의 `a . /` 조합 1,093개를 `node:path`와 비교하는 테스트가 있다. 예외는 절대 경로 `/..`의 `parsePath`다. Node는 `ext`를 `'.'`으로 돌려주지만 여기서는 `'..'`와 같게 `''`이다.
 
 ### nil 판별
 
@@ -161,11 +216,14 @@ scope.dispose(); // 등록의 역순으로 정리
 ### 비동기
 
 ```ts
-import { sleep } from "@cp949/utilx";
+import { nextAnimationFrame, sleep } from "@cp949/utilx";
 
 await sleep(500);
 await sleep(5000, controller.signal); // abort되면 AbortError로 거부
+await nextAnimationFrame(); // 다음 requestAnimationFrame까지
 ```
+
+- `nextAnimationFrame`은 `requestAnimationFrame`이 없으면 `setTimeout(0)` 뒤에 완료한다. 브라우저는 숨겨진 탭에서 프레임을 멈추므로, 그동안은 완료되지 않는다.
 
 ### blob
 
