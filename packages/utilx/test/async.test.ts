@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { delay } from "../src/async/index.js";
+import { sleep } from "../src/async/index.js";
 
-describe("delay", () => {
+describe("sleep", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -12,7 +12,7 @@ describe("delay", () => {
 
   it("지정한 시간이 지나면 완료한다", async () => {
     const done = vi.fn();
-    const promise = delay(100).then(done);
+    const promise = sleep(100).then(done);
 
     await vi.advanceTimersByTimeAsync(99);
     expect(done).not.toHaveBeenCalled();
@@ -23,7 +23,7 @@ describe("delay", () => {
 
   it("abort되면 AbortError로 거부한다", async () => {
     const controller = new AbortController();
-    const promise = delay(1000, controller.signal);
+    const promise = sleep(1000, controller.signal);
     const assertion = expect(promise).rejects.toMatchObject({
       name: "AbortError",
     });
@@ -37,7 +37,7 @@ describe("delay", () => {
     const controller = new AbortController();
     controller.abort();
 
-    await expect(delay(1000, controller.signal)).rejects.toMatchObject({
+    await expect(sleep(1000, controller.signal)).rejects.toMatchObject({
       name: "AbortError",
     });
     expect(vi.getTimerCount()).toBe(0);
@@ -46,7 +46,7 @@ describe("delay", () => {
   it("정상 완료하면 abort 리스너를 정리한다", async () => {
     const controller = new AbortController();
     const remove = vi.spyOn(controller.signal, "removeEventListener");
-    const promise = delay(10, controller.signal);
+    const promise = sleep(10, controller.signal);
 
     await vi.advanceTimersByTimeAsync(10);
     await promise;

@@ -44,34 +44,36 @@ type ListenOptions = boolean | AddEventListenerOptions;
  * `window`, `document`, `HTMLElement`는 이벤트 이름에 맞게 이벤트 타입이 추론된다.
  *
  * @example
- * const stop = listen(window, 'resize', (event) => console.log(event.type));
+ * const stop = addEventListenerWithCleanup(window, 'resize', (event) => console.log(event.type));
  * stop(); // 리스너 해제
  */
-export function listen<K extends keyof WindowEventMap>(
+export function addEventListenerWithCleanup<K extends keyof WindowEventMap>(
   target: Window,
   type: K,
   listener: (this: Window, event: WindowEventMap[K]) => unknown,
   options?: ListenOptions,
 ): CleanupFn;
-export function listen<K extends keyof DocumentEventMap>(
+export function addEventListenerWithCleanup<K extends keyof DocumentEventMap>(
   target: Document,
   type: K,
   listener: (this: Document, event: DocumentEventMap[K]) => unknown,
   options?: ListenOptions,
 ): CleanupFn;
-export function listen<K extends keyof HTMLElementEventMap>(
+export function addEventListenerWithCleanup<
+  K extends keyof HTMLElementEventMap,
+>(
   target: HTMLElement,
   type: K,
   listener: (this: HTMLElement, event: HTMLElementEventMap[K]) => unknown,
   options?: ListenOptions,
 ): CleanupFn;
-export function listen(
+export function addEventListenerWithCleanup(
   target: EventTarget,
   type: string,
   listener: EventListenerOrEventListenerObject,
   options?: ListenOptions,
 ): CleanupFn;
-export function listen(
+export function addEventListenerWithCleanup(
   target: EventTarget,
   type: string,
   listener: EventListenerOrEventListenerObject,
@@ -93,7 +95,7 @@ export function listen(
  *
  * @example
  * const scope = new DisposableScope();
- * scope.use(listen(window, 'resize', onResize));
+ * scope.use(addEventListenerWithCleanup(window, 'resize', onResize));
  * scope.setTimeout(() => console.log('1초 뒤'), 1000);
  * fetch(url, { signal: scope.signal });
  *

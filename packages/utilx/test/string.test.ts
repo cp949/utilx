@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { isBlank, isNotBlank, trim, trimToUndef } from "../src/string/index.js";
+import {
+  isBlank,
+  isNotBlank,
+  trim,
+  trimToUndefined,
+} from "../src/string/index.js";
 
 describe("trim", () => {
   it("앞뒤 공백을 제거한다", () => {
@@ -12,26 +17,26 @@ describe("trim", () => {
   });
 
   it("전각 공백, NBSP, BOM도 공백으로 본다", () => {
-    expect(trim("　a ")).toBe("a");
-    expect(trim("﻿a﻿")).toBe("a");
+    expect(trim("\u3000a\u00a0")).toBe("a");
+    expect(trim("\uFEFFa\uFEFF")).toBe("a");
   });
 });
 
-describe("trimToUndef", () => {
+describe("trimToUndefined", () => {
   it("공백을 제거한 값을 돌려준다", () => {
-    expect(trimToUndef("  a ")).toBe("a");
+    expect(trimToUndefined("  a ")).toBe("a");
   });
 
   it("비었거나 공백뿐이면 undefined다", () => {
-    expect(trimToUndef("")).toBeUndefined();
-    expect(trimToUndef("   ")).toBeUndefined();
-    expect(trimToUndef(null)).toBeUndefined();
-    expect(trimToUndef(undefined)).toBeUndefined();
+    expect(trimToUndefined("")).toBeUndefined();
+    expect(trimToUndefined("   ")).toBeUndefined();
+    expect(trimToUndefined(null)).toBeUndefined();
+    expect(trimToUndefined(undefined)).toBeUndefined();
   });
 });
 
 describe("isBlank / isNotBlank", () => {
-  it.each([[""], ["  "], ["　"], [null], [undefined]])(
+  it.each([[""], ["  "], ["\u3000"], [null], [undefined]])(
     "%j는 blank다",
     (value) => {
       expect(isBlank(value)).toBe(true);

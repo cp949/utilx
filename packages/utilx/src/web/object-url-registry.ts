@@ -17,13 +17,13 @@ interface RegistryEntry {
  *
  * @example
  * useEffect(() => {
- *   const registry = new URLCreateRegistry();
+ *   const registry = new ObjectUrlRegistry();
  *   const url = registry.acquire(file);
  *   setPreviewUrl(url);
  *   return () => registry.close();
  * }, [file]);
  */
-export class URLCreateRegistry {
+export class ObjectUrlRegistry {
   private blobToEntry = new Map<Blob, RegistryEntry>();
   private urlToEntry = new Map<string, RegistryEntry>();
   private isClosed = false;

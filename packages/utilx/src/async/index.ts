@@ -9,17 +9,17 @@
  * 취소와 정상 종료를 호출자가 구분할 수 있다.
  *
  * @example
- * await delay(500);
+ * await sleep(500);
  *
  * const controller = new AbortController();
  * try {
- *   await delay(5000, controller.signal);
+ *   await sleep(5000, controller.signal);
  * } catch (error) {
  *   if (error instanceof DOMException && error.name === 'AbortError') return;
  *   throw error;
  * }
  */
-export function delay(ms: number, signal?: AbortSignal): Promise<void> {
+export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     if (signal?.aborted) {
       reject(createAbortError());

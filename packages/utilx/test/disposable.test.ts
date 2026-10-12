@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DisposableScope,
   DisposeError,
-  listen,
+  addEventListenerWithCleanup,
 } from "../src/disposable/index.js";
 
 describe("DisposableScope", () => {
@@ -207,12 +207,12 @@ describe("DisposableScope", () => {
   });
 });
 
-describe("listen", () => {
+describe("addEventListenerWithCleanup", () => {
   it("리스너를 등록하고 cleanup으로 해제한다", () => {
     const target = new EventTarget();
     const listener = vi.fn();
 
-    const stop = listen(target, "ping", listener);
+    const stop = addEventListenerWithCleanup(target, "ping", listener);
     target.dispatchEvent(new Event("ping"));
     stop();
     target.dispatchEvent(new Event("ping"));
@@ -227,7 +227,7 @@ describe("listen", () => {
     const listener = vi.fn();
     const options = { capture: true };
 
-    listen(target, "ping", listener, options)();
+    addEventListenerWithCleanup(target, "ping", listener, options)();
 
     expect(add).toHaveBeenCalledWith("ping", listener, options);
     expect(remove).toHaveBeenCalledWith("ping", listener, options);
@@ -237,7 +237,7 @@ describe("listen", () => {
     const target = new EventTarget();
     const listener = vi.fn();
     const scope = new DisposableScope();
-    scope.use(listen(target, "ping", listener));
+    scope.use(addEventListenerWithCleanup(target, "ping", listener));
 
     scope.dispose();
     target.dispatchEvent(new Event("ping"));

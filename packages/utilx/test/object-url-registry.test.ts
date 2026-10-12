@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { URLCreateRegistry } from "../src/web/index.js";
+import { ObjectUrlRegistry } from "../src/web/index.js";
 
-describe("URLCreateRegistry", () => {
+describe("ObjectUrlRegistry", () => {
   let counter: number;
   let createObjectURL: ReturnType<typeof vi.fn>;
   let revokeObjectURL: ReturnType<typeof vi.fn>;
@@ -14,7 +14,7 @@ describe("URLCreateRegistry", () => {
   });
 
   it("acquire는 같은 Blob에 같은 URL을 돌려주고 한 번만 만든다", () => {
-    const registry = new URLCreateRegistry();
+    const registry = new ObjectUrlRegistry();
     const blob = new Blob(["hello"]);
 
     const first = registry.acquire(blob);
@@ -31,7 +31,7 @@ describe("URLCreateRegistry", () => {
   });
 
   it("release는 참조 횟수가 0이 될 때만 해제한다", () => {
-    const registry = new URLCreateRegistry();
+    const registry = new ObjectUrlRegistry();
     const blob = new Blob(["a"]);
     const url = registry.acquire(blob);
     registry.acquire(blob);
@@ -47,7 +47,7 @@ describe("URLCreateRegistry", () => {
   });
 
   it("revoke는 참조 횟수와 무관하게 즉시 해제한다", () => {
-    const registry = new URLCreateRegistry();
+    const registry = new ObjectUrlRegistry();
     const blob = new Blob(["b"]);
     const url = registry.acquire(blob);
     registry.acquire(blob);
@@ -58,7 +58,7 @@ describe("URLCreateRegistry", () => {
   });
 
   it("revoke는 URL로도 지정할 수 있다", () => {
-    const registry = new URLCreateRegistry();
+    const registry = new ObjectUrlRegistry();
     const url = registry.acquire(new Blob(["c"]));
 
     expect(registry.revoke(url)).toBe(true);
@@ -66,7 +66,7 @@ describe("URLCreateRegistry", () => {
   });
 
   it("등록되지 않은 대상은 false다", () => {
-    const registry = new URLCreateRegistry();
+    const registry = new ObjectUrlRegistry();
     const blob = new Blob(["x"]);
 
     expect(registry.release(blob)).toBe(false);
@@ -76,7 +76,7 @@ describe("URLCreateRegistry", () => {
   });
 
   it("revokeAll은 해제한 개수를 돌려주고 이후에도 쓸 수 있다", () => {
-    const registry = new URLCreateRegistry();
+    const registry = new ObjectUrlRegistry();
     registry.acquire(new Blob(["a"]));
     registry.acquire(new Blob(["b"]));
 
@@ -89,7 +89,7 @@ describe("URLCreateRegistry", () => {
   });
 
   it("close는 모두 해제하고 이후 acquire를 막는다", () => {
-    const registry = new URLCreateRegistry();
+    const registry = new ObjectUrlRegistry();
     const blob = new Blob(["z"]);
     const url = registry.acquire(blob);
 
@@ -103,7 +103,7 @@ describe("URLCreateRegistry", () => {
   });
 
   it("메서드를 분리해서 호출해도 동작한다", () => {
-    const { acquire, release } = new URLCreateRegistry();
+    const { acquire, release } = new ObjectUrlRegistry();
     const blob = new Blob(["d"]);
     const url = acquire(blob);
 

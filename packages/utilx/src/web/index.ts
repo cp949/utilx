@@ -34,4 +34,4 @@ export function downloadBlob(blob: Blob, fileName: string): void {
   }
 }
 
-export { URLCreateRegistry } from "./url-registry.js";
+export { ObjectUrlRegistry } from "./object-url-registry.js";
