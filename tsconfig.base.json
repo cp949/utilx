@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "declaration": true,
+    "esModuleInterop": true,
+    "incremental": false,
+    "isolatedModules": true,
+    "module": "NodeNext",
+    "moduleDetection": "force",
+    "moduleResolution": "NodeNext",
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
+    "strict": true,
+    // Chrome 75 하한 라이브러리용이다. lib은 ES2019로 제한하고 DOM은 src/web에서만 쓴다.
+    "target": "ES2019",
+    "lib": ["ES2019", "DOM"],
+    "types": []
+  }
+}

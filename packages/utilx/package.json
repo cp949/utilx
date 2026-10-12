@@ -1,0 +1,62 @@
+{
+  "name": "@cp949/utilx",
+  "version": "2.0.0",
+  "description": "브라우저용 문자열, 바이트 표기, 파일명, blob 다운로드 유틸. 런타임 의존성 0",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cp949/utilx.git",
+    "directory": "packages/utilx"
+  },
+  "homepage": "https://github.com/cp949/utilx#readme",
+  "bugs": {
+    "url": "https://github.com/cp949/utilx/issues"
+  },
+  "keywords": [
+    "string",
+    "trim",
+    "blank",
+    "bytes",
+    "file-size",
+    "filename",
+    "download",
+    "browser",
+    "esm"
+  ],
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./string": {
+      "types": "./dist/string/index.d.ts",
+      "default": "./dist/string/index.js"
+    },
+    "./bytes": {
+      "types": "./dist/bytes/index.d.ts",
+      "default": "./dist/bytes/index.js"
+    },
+    "./file": {
+      "types": "./dist/file/index.d.ts",
+      "default": "./dist/file/index.js"
+    },
+    "./web": {
+      "types": "./dist/web/index.d.ts",
+      "default": "./dist/web/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc",
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "test": "vitest run"
+  }
+}

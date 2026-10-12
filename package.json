@@ -1,0 +1,30 @@
+{
+  "name": "utilx",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm --filter @cp949/utilx build",
+    "lint": "pnpm --filter @cp949/utilx lint",
+    "format": "prettier --write \"**/*.{ts,mjs,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,mjs,js,json,md}\"",
+    "check-types": "pnpm --filter @cp949/utilx check-types",
+    "test": "pnpm --filter @cp949/utilx test",
+    "check:escompat": "node scripts/check-escompat.mjs",
+    "check:deps": "node scripts/check-deps.mjs",
+    "verify": "pnpm lint && pnpm format:check && pnpm build && pnpm check:escompat && pnpm check:deps && pnpm check-types && pnpm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.13.6",
+    "eslint": "10.11.0",
+    "eslint-plugin-es-x": "9.7.0",
+    "globals": "17.12.0",
+    "prettier": "3.9.8",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.1",
+    "vitest": "5.0.1"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
