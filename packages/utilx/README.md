@@ -12,26 +12,30 @@ pnpm add @cp949/utilx
 
 진입점은 `@cp949/utilx` 하나다. 사용하지 않는 export는 번들러가 제거한다(`sideEffects: false`).
 
-## 공개 API
+## 영역별 대표 API
 
-| 영역        | export                                                                                                                                                                                                                                                                                                                                    | DOM          |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| 문자열      | `trim`, `trimToUndefined`, `isBlank`, `isNotBlank`                                                                                                                                                                                                                                                                                        | 없음         |
-| nil 판별    | `isNil`, `isNotNil`                                                                                                                                                                                                                                                                                                                       | 없음         |
-| 배열        | `appendUnique`, `prependUnique`, `removeFirst`, `updateFirst`, `moveItem`, `swapItems`, `swapValues`, `rotateLeft`, `rotateRight`, `uniq`, `uniqBy`, `limitItems`, `lengthOf`, `isEmpty`, `isNotEmpty`, `firstItem`, `firstItems`, `lastItem`, `lastItems`, `isValidIndexRange`, `zipMap`, 타입 `ArrayInPlaceOptions`, `ArrayCopyOptions` | 없음         |
-| 숫자        | `parseNumberOrUndefined`, `parseIntegerOrUndefined`, 타입 `ParseIntegerOptions`                                                                                                                                                                                                                                                           | 없음         |
-| 타입 가드   | `isString`, `isNumber`, `isBoolean`, `isFunction`, `isPlainObject`, `isNonEmptyArray`, `isPromiseLike`, `isError`, `invariant`                                                                                                                                                                                                            | 없음         |
-| 오류 값     | `extractErrorMessage`, `toError`, 타입 `ErrorWithCause`                                                                                                                                                                                                                                                                                   | 없음         |
-| 바이너리    | `isUint8Array`, `toUint8Array`, `concatUint8Arrays`, `areUint8ArraysEqual`, `compareUint8Arrays`, `indexOfUint8Array`, `includesUint8Array`, `stringToUint8Array`, `uint8ArrayToString`, `uint8ArrayToBase64`, `base64ToUint8Array`, `stringToBase64`, `base64ToString`, `uint8ArrayToHex`, `hexToUint8Array`, 타입 `Base64Options`       | 없음         |
-| 바이트 표기 | `formatByteCount`, `formatByteCountToParts`, `byteCountInUnit`, 타입 `FormatByteCountOptions`, `ByteCountParts`, `ByteCountInUnitOptions`                                                                                                                                                                                                 | 없음         |
-| URL         | `joinUrl`                                                                                                                                                                                                                                                                                                                                 | 없음         |
-| 파일명      | `fileExtension`, `fileBaseName`, 타입 `FileExtensionOptions`                                                                                                                                                                                                                                                                              | 없음         |
-| 버퍼        | `BoundedBuffer`                                                                                                                                                                                                                                                                                                                           | 없음         |
-| cleanup     | `DisposableScope`, `DisposeError`, `addEventListenerWithCleanup`, 타입 `CleanupFn`, `DisposableLike`                                                                                                                                                                                                                                      | 타입만       |
-| 비동기      | `sleep`                                                                                                                                                                                                                                                                                                                                   | 없음         |
-| blob        | `downloadBlob`, `blobToFile`, `ObjectUrlRegistry`, 타입 `BlobToFileOptions`                                                                                                                                                                                                                                                               | 호출 시 필요 |
-| 클립보드    | `copyTextToClipboard`                                                                                                                                                                                                                                                                                                                     | 호출 시 필요 |
-| 미디어      | `stopMediaStream`, `hasGetUserMedia`                                                                                                                                                                                                                                                                                                      | 호출 시 필요 |
+아래 표는 영역별 대표 API만 소개한다. 전체 공개 export는 [소스 진입점과 영역별 index.ts](https://github.com/cp949/utilx/blob/main/packages/utilx/src/index.ts)에서 확인한다.
+
+| 영역           | 대표 API                                                                         |
+| -------------- | -------------------------------------------------------------------------------- |
+| 문자열         | `trim`, `isBlank`, `camelCase`, `truncateMiddle`                                 |
+| nil 판별       | `isNil`, `isNotNil`                                                              |
+| 배열           | `appendUnique`, `moveItem`, `uniq`, `firstItem`, `zipMap`                        |
+| 숫자           | `parseNumberOrUndefined`, `parseIntegerOrUndefined`                              |
+| 타입 가드·단언 | `isString`, `isPlainObject`, `invariant`                                         |
+| 오류 값        | `extractErrorMessage`, `toError`                                                 |
+| 값 비교        | `isShallowEqual`, `isDeepEqual`                                                  |
+| 경로           | `normalizePath`, `joinPath`, `parsePath`                                         |
+| 바이너리       | `toUint8Array`, `stringToBase64`, `hexToUint8Array`                              |
+| 바이트 표기    | `formatByteCount`, `formatByteCountToParts`, `byteCountInUnit`                   |
+| URL            | `joinUrl`                                                                        |
+| 파일명         | `fileExtension`, `fileBaseName`                                                  |
+| 버퍼           | `BoundedBuffer`                                                                  |
+| cleanup        | `DisposableScope`, `addEventListenerWithCleanup`                                 |
+| 비동기         | `sleep`, `nextAnimationFrame`                                                    |
+| 다운로드·blob  | `downloadUrl`, `downloadBlob`, `downloadText`, `blobToFile`, `ObjectUrlRegistry` |
+| 클립보드       | `copyTextToClipboard`                                                            |
+| 미디어         | `stopMediaStream`, `hasGetUserMedia`                                             |
 
 이름은 `trim`처럼 널리 알려진 것은 그대로 쓰고, 그 밖에는 동작이 보이게 서술적으로 짓는다. 분류가 애매한 함수를 모아 두는 `misc` 같은 영역은 만들지 않는다.
 
@@ -73,8 +77,8 @@ isNumericString("1e3"); // false
 - `strlen`은 UTF-16 코드 유닛 수(`str.length`)를 돌려준다. 바이트 수나 글자 수가 아니다. `null`/`undefined`는 `0`이다.
 - `replaceAll`은 `String.prototype.replaceAll`(Chrome 85)을 쓸 수 없는 환경을 위한 함수다. 정규식과 `$&` 같은 치환 패턴을 해석하지 않는다. 빈 `search`는 아무것도 바꾸지 않는다.
 - `removePrefix`, `removeSuffix`의 `repeat` 옵션은 붙어 있는 동안 반복해서 제거한다.
-- `limitMaxLength`, `truncateMiddle`은 서로게이트 쌍(이모지 등)을 반으로 자르지 않는다. 결과 길이는 지정한 값 이하다.
-- `pascalCase`, `camelCase`, `kebabToPascal`은 각 단어를 소문자로 만든 뒤 첫 글자만 대문자로 한다. 약어도 단어 하나로 취급해서 `'API'`는 `'Api'`가 된다. 로캘은 따르지 않는다.
+- `limitMaxLength`, `truncateMiddle`은 원문을 자를 때 서로게이트 쌍(이모지 등)을 반으로 자르지 않는다. 결과 길이는 지정한 값 이하다. 다만 `truncateMiddle`의 `omission`이 지정한 길이 이상이면 생략 표시 자체를 UTF-16 코드 유닛 기준으로 자르므로 쌍이 잘릴 수 있다. 이 경우 ASCII 생략 표시(`...` 등)를 쓴다.
+- `pascalCase`, `kebabToPascal`은 각 단어를 소문자로 만든 뒤 첫 글자만 대문자로 한다. 약어도 단어 하나로 취급해서 `API`는 `Api`가 된다. `camelCase`는 첫 단어 전체를 소문자로 만들고 나머지 단어에 같은 규칙을 적용한다. 로캘은 따르지 않는다.
 - `isNumericString`은 부호와 소수점만 허용하는 10진수 표기만 `true`다. 빈 문자열, 공백, 지수(`1e3`), 16진수, `Infinity`는 `false`다. `isDigitString`은 ASCII 숫자만 `true`다. 둘 다 타입 가드가 아니다.
 
 ### 값 비교
@@ -189,7 +193,8 @@ isFunction(async () => 1); // true
 ```ts
 import { invariant } from "@cp949/utilx";
 
-const entry = stack.find((e) => e.key === key);
+const stack = [{ key: "settings", open: true }];
+const entry = stack.find((e) => e.key === "settings");
 invariant(entry, "dialog not found");
 entry.open; // entry는 undefined가 아니다
 ```
@@ -201,12 +206,11 @@ entry.open; // entry는 undefined가 아니다
 ```ts
 import { extractErrorMessage, toError } from "@cp949/utilx";
 
-try {
-  await save();
-} catch (err) {
-  showToast(extractErrorMessage(err)); // 무엇을 throw해도 문자열
-  throw toError(err); // 무엇을 throw해도 Error
-}
+const failure = { message: "저장 실패", code: 500 };
+extractErrorMessage(failure); // '저장 실패'
+const error = toError(failure);
+error.message; // '저장 실패'
+error.cause === failure; // true
 ```
 
 - 둘 다 예외를 던지지 않는다.
@@ -246,7 +250,7 @@ formatByteCount(1536, { base: 1000 }); // '1.5 KB'
 formatByteCount(2048, { units: ["바이트", "KB"] }); // '2 KB'
 ```
 
-- 첫 단위는 정수, 그 위 단위는 10 미만이면 소수 첫째 자리까지 표기한다. `.0`은 생략한다.
+- 기본 `base`는 `1024`다. `fractionDigits`를 생략하면 첫 단위는 정수, 그 위 단위는 10 미만이면 소수 첫째 자리까지 표기한다. `.0`은 생략한다. 단위를 고정하지 않은 음수는 반올림하지 않고 바이트 단위로 그대로 표기한다.
 - 반올림 결과가 `base`에 닿으면 다음 단위로 올린다.
 - `NaN`, `Infinity`는 `RangeError`다.
 
@@ -264,7 +268,7 @@ formatByteCountToParts(1536); // { value: 1.5, unit: 'KB' }
 byteCountInUnit(1536 * 1024 ** 2, "GB", { fractionDigits: 1 }); // 1.5
 ```
 
-- `fractionDigits`는 수이면 최대 자릿수(끝의 `0`은 지움), `{ min, max }`이면 최소 `min`자리까지 `0`으로 채운다. 0 이상 20 이하의 정수여야 하고 첫 단위(바이트)는 항상 정수다.
+- `fractionDigits`는 수이면 최대 자릿수(끝의 `0`은 지움), `{ min, max }`이면 최소 `min`자리까지 `0`으로 채운다. 각 자릿수는 0 이상 20 이하의 정수이며 `min <= max`여야 한다. 첫 단위(바이트)는 정수로 표기한다. 단위를 고정하지 않은 음수에는 소수 자릿수를 적용하지 않는다.
 - `unit`은 `units` 안의 라벨 하나로 단위를 고정한다. 반올림 결과가 `base`에 닿아도 올리지 않는다. 없는 라벨이면 `RangeError`다.
 - `formatByteCountToParts`는 같은 규칙으로 계산한 수(`number`)와 단위를 나눠 돌려준다. 수를 따로 `toLocaleString`으로 포매팅할 때 쓴다. `formatByteCount`는 천 단위 구분자를 넣지 않는다.
 - `byteCountInUnit(size, unit, options?)`는 지정한 단위로 환산한 수를 `Math.round`로 `fractionDigits`(기본 `0`)자리까지 반올림해 돌려준다. 합산 같은 계산용이다. 표시용 문자열을 다시 수로 파싱하지 않는다.
@@ -321,12 +325,19 @@ React 컴포넌트 언마운트처럼 "여러 자원을 한 번에 정리"하는
 import { DisposableScope, addEventListenerWithCleanup } from "@cp949/utilx";
 
 const scope = new DisposableScope();
-scope.use(addEventListenerWithCleanup(window, "resize", onResize)); // 리스너 해제 등록
+scope.use(
+  addEventListenerWithCleanup(window, "resize", () => console.log("크기 변경")),
+); // 리스너 해제 등록
 scope.setTimeout(() => console.log("1초 뒤"), 1000); // 타이머 취소 등록
-scope.use(() => socket.close()); // 임의의 cleanup
-fetch(url, { signal: scope.signal }); // dispose 때 abort
+scope.use(() => console.log("정리 완료")); // 임의의 cleanup
+const request = fetch("data:text/plain,hello", { signal: scope.signal }).catch(
+  (err: unknown) => {
+    console.log(err); // dispose로 취소된 요청의 거부 처리
+  },
+);
 
 scope.dispose(); // 등록의 역순으로 정리
+await request;
 ```
 
 - `use`는 함수이거나 `dispose()`를 가진 객체를 받는다. `close()` 등 다른 이름은 함수로 감싼다.
@@ -341,6 +352,7 @@ scope.dispose(); // 등록의 역순으로 정리
 ```ts
 import { nextAnimationFrame, sleep } from "@cp949/utilx";
 
+const controller = new AbortController();
 await sleep(500);
 await sleep(5000, controller.signal); // abort되면 AbortError로 거부
 await nextAnimationFrame(); // 다음 requestAnimationFrame까지
@@ -364,7 +376,8 @@ downloadUrl("/reports/2026.pdf", "report.pdf");
 downloadBlob(new Blob(["hello"], { type: "text/plain" }), "hello.txt");
 downloadText("a,b\n1,2", "data.csv", { mimeType: "text/csv;charset=utf-8" });
 
-const file = blobToFile(blob, "photo.png"); // Blob -> File
+const blob = new Blob(["hello"], { type: "text/plain" });
+const file = blobToFile(blob, "hello.txt"); // Blob -> File
 const copied = await copyTextToClipboard("복사할 텍스트"); // 성공하면 true
 
 const registry = new ObjectUrlRegistry();
@@ -395,7 +408,7 @@ if (hasGetUserMedia()) {
 ```
 
 - `stopMediaStream(stream, kind?)`은 트랙을 멈추고 스트림에서 뺀다. `kind`를 `"audio"` 또는 `"video"`로 주면 해당 종류만 처리한다.
-- `hasGetUserMedia()`는 `http://` 같은 보안 컨텍스트가 아닌 페이지와 서버에서 `false`다.
+- `hasGetUserMedia()`는 `navigator.mediaDevices.getUserMedia`가 함수일 때만 `true`다. `navigator`나 `mediaDevices`가 없는 환경에서는 `false`다. 권한 승인이나 장치 유무는 확인하지 않는다.
 
 ## 1.x에서 옮기기
 
@@ -465,6 +478,8 @@ if (hasGetUserMedia()) {
 
 ## 개발
 
+Node.js 24 이상과 pnpm이 필요하다. 저장소 루트에서 실행한다.
+
 ```sh
 pnpm install
 pnpm verify
@@ -496,6 +511,6 @@ pnpm verify
 - 모듈 최상위에서 실행되는 코드를 두지 않는다. 상수와 함수, 클래스 선언만 둔다. 모듈 최상위의 `new`, 전역 변경, 정적 초기화 블록(`static {}`)은 금지한다.
 - 이름 있는 export만 쓴다. 기본 export와 객체로 묶은 export는 만들지 않는다.
 - `package.json`의 `"sideEffects": false`를 유지한다.
-- 새 export를 추가하면 그것만 import한 번들에 다른 코드가 딸려 오지 않는지 확인한다. 2.0.0 기준으로 `trim`만 import하면 58바이트(minify, rolldown)다.
+- 새 export를 추가하면 그것만 import한 번들에 다른 코드가 딸려 오지 않는지 확인한다.
 
 Chrome 하한은 `baseline.json` 한 곳에서만 선언한다. 실제 브라우저 실행 검증은 하지 않는다. `check:escompat`은 정적 검사다.

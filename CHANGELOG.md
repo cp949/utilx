@@ -12,12 +12,16 @@
 - 오류 값: `extractErrorMessage`, `toError`, 타입 `ErrorWithCause`
   - 둘 다 예외를 던지지 않는다. `toError`는 `isError`로 판정하므로 다른 realm의 `Error`를 보존하고, 그 외 값은 새 `Error`로 감싸 원래 값을 `cause`에 담는다.
 - URL: `joinUrl`
-  - 빈 문자열만 넘길 때의 예외, 첫 조각이 `#`/`?`로 시작할 때의 오동작, `#`이 둘 이상일 때 뒤를 버리는 문제를 고쳤다. 배열 단일 인자는 받지 않는다.
+  - 빈 문자열 조각은 건너뛴다. 조각이 없거나 모두 비어 있으면 빈 문자열을 반환한다. 첫 조각이 `#`/`?`로 시작하거나 `#`이 둘 이상인 입력도 처리한다. 문자열 조각을 가변 인자로 받고, 배열 단일 인자는 받지 않는다.
 - 단언: `invariant`. 예외 `name`은 `'Invariant Violation'`이다.
 - blob: `blobToFile`, 타입 `BlobToFileOptions`
 - 클립보드: `copyTextToClipboard`. 실패하면 예외 대신 `false`를 돌려준다.
 - 바이트 표기: `formatByteCountToParts`, `byteCountInUnit`, 타입 `ByteCountParts`, `ByteCountInUnitOptions`
   - `formatByteCount` 옵션에 `fractionDigits`, `unit`을 추가했다. 옵션을 지정하지 않은 출력은 바뀌지 않는다.
+
+### 변경
+
+- 공개 함수와 클래스를 이름에 맞는 개별 소스 파일로 분리했다. 공개 import 진입점은 `@cp949/utilx`로 유지한다.
 
 ## 2.0.0
 
