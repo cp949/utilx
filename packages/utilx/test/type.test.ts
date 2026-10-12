@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   isBoolean,
   isError,
+  invariant,
   isFunction,
   isNonEmptyArray,
   isNumber,
@@ -135,5 +136,39 @@ describe("isError", () => {
     expect(isError({ message: "x" })).toBe(false);
     expect(isError("x")).toBe(false);
     expect(isError(null)).toBe(false);
+  });
+});
+
+describe("invariant", () => {
+  it("조건이 참이면 아무것도 하지 않는다", () => {
+    expect(() => {
+      invariant(true, "x");
+      invariant(1, "x");
+      invariant("a", "x");
+    }).not.toThrow();
+  });
+
+  it("조건이 거짓이면 message를 담은 Error를 던진다", () => {
+    for (const falsy of [false, 0, "", null, undefined, Number.NaN]) {
+      expect(() => {
+        invariant(falsy, "깨진 가정");
+      }).toThrow("깨진 가정");
+    }
+  });
+
+  it("예외의 name은 Invariant Violation이다", () => {
+    try {
+      invariant(false, "x");
+      expect.unreachable();
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).name).toBe("Invariant Violation");
+    }
+  });
+
+  it("통과하면 조건을 참으로 좁힌다", () => {
+    const entry = { open: true } as { open: boolean } | undefined;
+    invariant(entry, "entry 없음");
+    expect(entry.open).toBe(true);
   });
 });

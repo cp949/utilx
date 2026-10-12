@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.1.0
+
+### 추가
+
+- 배열: `appendUnique`, `prependUnique`, `removeFirst`, `updateFirst`, `moveItem`, `swapItems`, `swapValues`, `rotateLeft`, `rotateRight`, `uniq`, `uniqBy`, `limitItems`, `lengthOf`, `isEmpty`, `isNotEmpty`, `firstItem`, `firstItems`, `lastItem`, `lastItems`, `isValidIndexRange`, `zipMap`, 타입 `ArrayInPlaceOptions`, `ArrayCopyOptions`
+  - 배열을 바꾸는 함수는 마지막 인자 `{ inplace: true | false }`가 필수다. `true`는 전달한 배열을 직접 수정하고, `false`는 새 배열을 돌려준다. 읽기만 하는 `lengthOf`, `isEmpty`, `isNotEmpty`, `firstItem`, `firstItems`, `lastItem`, `lastItems`, `isValidIndexRange`, `zipMap`은 받지 않는다.
+  - `@ocodelib/util`의 `array` 영역에서 쓰던 `append`, `prepend`, `remove`, `replace`, `move`, `swap`, `swapValue`, `shiftRotateLeft`, `shiftRotateRight`, `uniq`, `uniqBy`, `truncate`, `size`, `last`, `lastOne`, `first`, `firstOne`, `isEmpty`, `isNotEmpty`, `isValidRange`, `zipWith`와 `$` 접두어 복사본 함수를 대체한다. 대응은 README의 "@ocodelib/util에서 옮기기"를 따른다.
+- 숫자: `parseNumberOrUndefined`, `parseIntegerOrUndefined`, 타입 `ParseIntegerOptions`
+  - 10진수 표기(`isNumericString`과 같은 규칙)만 받는다. 빈 문자열은 `0`이 아니라 `undefined`다. 정수 판정은 변환된 수 값 기준이고 `Number.isSafeInteger`를 벗어나면 `undefined`다.
+- 오류 값: `extractErrorMessage`, `toError`, 타입 `ErrorWithCause`
+  - 둘 다 예외를 던지지 않는다. `toError`는 `isError`로 판정하므로 다른 realm의 `Error`를 보존하고, 그 외 값은 새 `Error`로 감싸 원래 값을 `cause`에 담는다.
+- URL: `joinUrl`
+  - 빈 문자열만 넘길 때의 예외, 첫 조각이 `#`/`?`로 시작할 때의 오동작, `#`이 둘 이상일 때 뒤를 버리는 문제를 고쳤다. 배열 단일 인자는 받지 않는다.
+- 단언: `invariant`. 예외 `name`은 `'Invariant Violation'`이다.
+- blob: `blobToFile`, 타입 `BlobToFileOptions`
+- 클립보드: `copyTextToClipboard`. 실패하면 예외 대신 `false`를 돌려준다.
+- 바이트 표기: `formatByteCountToParts`, `byteCountInUnit`, 타입 `ByteCountParts`, `ByteCountInUnitOptions`
+  - `formatByteCount` 옵션에 `fractionDigits`, `unit`을 추가했다. 옵션을 지정하지 않은 출력은 바뀌지 않는다.
+
 ## 2.0.0
 
 패키지를 재구성했다. 1.x의 `genId`, `genUid`를 제거하고 나머지 API를 재설계하므로 메이저 버전을 올린다.
