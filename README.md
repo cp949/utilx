@@ -1,6 +1,6 @@
 # @cp949/utilx
 
-브라우저용 문자열, nil 판별, 바이트 표기, 파일명, 버퍼, cleanup scope, blob 유틸. 런타임 의존성 0, Chrome 75 하한(ES2019), ESM 전용이다.
+브라우저용 문자열, 타입 가드, 바이너리(Uint8Array), 바이트 표기, 파일명, 버퍼, cleanup scope, blob, 미디어 스트림 유틸. 런타임 의존성 0, Chrome 75 하한(ES2019), ESM 전용이다.
 
 2.0.0은 1.x의 API를 재설계해 이름과 동작이 바뀌었다. 1.x에서 올리는 경우 아래 [1.x에서 옮기기](#1x에서-옮기기)를 따른다.
 
@@ -14,20 +14,23 @@ pnpm add @cp949/utilx
 
 ## 공개 API
 
-| 영역        | export                                                                                               | DOM          |
-| ----------- | ---------------------------------------------------------------------------------------------------- | ------------ |
-| 문자열      | `trim`, `trimToUndefined`, `isBlank`, `isNotBlank`                                                   | 없음         |
-| nil 판별    | `isNil`, `isNotNil`                                                                                  | 없음         |
-| 바이트 표기 | `formatByteCount`, 타입 `FormatByteCountOptions`                                                     | 없음         |
-| 파일명      | `fileExtension`, `fileBaseName`, 타입 `FileExtensionOptions`                                         | 없음         |
-| 버퍼        | `BoundedBuffer`                                                                                      | 없음         |
-| cleanup     | `DisposableScope`, `DisposeError`, `addEventListenerWithCleanup`, 타입 `CleanupFn`, `DisposableLike` | 타입만       |
-| 비동기      | `sleep`                                                                                              | 없음         |
-| blob        | `downloadBlob`, `ObjectUrlRegistry`                                                                  | 호출 시 필요 |
+| 영역        | export                                                                                                                                                                                                                                                                                                                              | DOM          |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| 문자열      | `trim`, `trimToUndefined`, `isBlank`, `isNotBlank`                                                                                                                                                                                                                                                                                  | 없음         |
+| nil 판별    | `isNil`, `isNotNil`                                                                                                                                                                                                                                                                                                                 | 없음         |
+| 타입 가드   | `isString`, `isNumber`, `isBoolean`, `isFunction`, `isPlainObject`, `isNonEmptyArray`, `isPromiseLike`, `isError`                                                                                                                                                                                                                   | 없음         |
+| 바이너리    | `isUint8Array`, `toUint8Array`, `concatUint8Arrays`, `areUint8ArraysEqual`, `compareUint8Arrays`, `indexOfUint8Array`, `includesUint8Array`, `stringToUint8Array`, `uint8ArrayToString`, `uint8ArrayToBase64`, `base64ToUint8Array`, `stringToBase64`, `base64ToString`, `uint8ArrayToHex`, `hexToUint8Array`, 타입 `Base64Options` | 없음         |
+| 바이트 표기 | `formatByteCount`, 타입 `FormatByteCountOptions`                                                                                                                                                                                                                                                                                    | 없음         |
+| 파일명      | `fileExtension`, `fileBaseName`, 타입 `FileExtensionOptions`                                                                                                                                                                                                                                                                        | 없음         |
+| 버퍼        | `BoundedBuffer`                                                                                                                                                                                                                                                                                                                     | 없음         |
+| cleanup     | `DisposableScope`, `DisposeError`, `addEventListenerWithCleanup`, 타입 `CleanupFn`, `DisposableLike`                                                                                                                                                                                                                                | 타입만       |
+| 비동기      | `sleep`                                                                                                                                                                                                                                                                                                                             | 없음         |
+| blob        | `downloadBlob`, `ObjectUrlRegistry`                                                                                                                                                                                                                                                                                                 | 호출 시 필요 |
+| 미디어      | `stopMediaStream`, `hasGetUserMedia`                                                                                                                                                                                                                                                                                                | 호출 시 필요 |
 
 이름은 `trim`처럼 널리 알려진 것은 그대로 쓰고, 그 밖에는 동작이 보이게 서술적으로 짓는다. 분류가 애매한 함수를 모아 두는 `misc` 같은 영역은 만들지 않는다.
 
-DOM이 필요한 `downloadBlob`, `ObjectUrlRegistry`는 호출할 때만 `document`, `URL.createObjectURL`에 접근한다. import만으로는 접근하지 않으므로 서버에서 import해도 안전하다.
+DOM이 필요한 `downloadBlob`, `ObjectUrlRegistry`, `hasGetUserMedia`는 호출할 때만 `document`, `URL.createObjectURL`, `navigator`에 접근한다. import만으로는 접근하지 않으므로 서버에서 import해도 안전하다.
 
 ### 문자열
 
@@ -36,7 +39,7 @@ import { isBlank, trim, trimToUndefined } from "@cp949/utilx";
 
 trim(undefined); // ''
 trimToUndefined("   "); // undefined
-isBlank("　"); // true (전각 공백)
+isBlank("\u3000"); // true (전각 공백)
 ```
 
 - 공백 기준은 `String.prototype.trim()`과 같다.
@@ -54,6 +57,42 @@ const names: string[] = ["a", null, "b"].filter(isNotNil);
 
 - nil은 `null`과 `undefined`다. `0`, `''`, `false`, `NaN`은 nil이 아니다.
 - 둘 다 타입 가드다. `isNotNil`은 `NonNullable<T>`로 좁힌다.
+
+### 타입 가드
+
+```ts
+import { isFunction, isPlainObject, isString } from "@cp949/utilx";
+
+const names: string[] = ["a", 1, "b"].filter(isString);
+isPlainObject(new Map()); // false
+isFunction(async () => 1); // true
+```
+
+- `false`일 때 타입이 틀리게 좁혀지지 않는 정확한 가드만 둔다. 그래서 `NaN`을 거르는 `isNumber`는 없다. `isNumber`는 `typeof value === "number"`이고 `NaN`도 `true`다.
+- `isPlainObject`는 객체 리터럴과 `Object.create(null)`만 `true`다. 배열, `Map`, `Date`, 클래스 인스턴스는 `false`다. 다른 realm(iframe)의 평범한 객체는 `true`다.
+- `isError`는 다른 realm의 `Error`도 `true`다.
+- 이 외 가드(`isDate`, `isEmail`, `isElement` 등)는 두지 않는다. `instanceof`나 `typeof` 한 줄로 충분한 것은 만들지 않는다.
+
+### 바이너리
+
+```ts
+import {
+  base64ToUint8Array,
+  concatUint8Arrays,
+  stringToBase64,
+  uint8ArrayToHex,
+} from "@cp949/utilx";
+
+uint8ArrayToHex(new Uint8Array([0, 15, 255])); // '000fff'
+stringToBase64("안녕", { urlSafe: true }); // '7JWI64WV'
+base64ToUint8Array("-_8"); // Uint8Array [251, 255]
+```
+
+- 모두 `Uint8Array` 기반이다. Node의 `Buffer` 대신 브라우저에서 쓴다.
+- base64는 일반과 URL-safe를 모두 읽고, 패딩(`=`)은 없어도 된다. `stringToBase64`는 `btoa`와 달리 한글 등 유니코드를 UTF-8로 인코딩한다.
+- `areUint8ArraysEqual`은 상수 시간 비교가 아니다. 토큰이나 MAC 같은 비밀 값 비교에 쓰지 않는다.
+- `indexOfUint8Array`는 빈 검색 대상에 `0`을 돌려준다(`String.prototype.indexOf`와 같다).
+- 인자 타입은 TypeScript로만 검사한다. 잘못된 base64나 hex는 예외를 던진다(base64는 `DOMException`, hex는 `RangeError`).
 
 ### 바이트 표기
 
@@ -146,6 +185,21 @@ registry.close(); // 모두 해제하고 닫음, 되돌릴 수 없음
 - `ObjectUrlRegistry`는 GC 때 자동으로 해제하지 않는다. 등록된 Blob은 해제하기 전까지 메모리에 남는다.
 - **React StrictMode**: effect cleanup에서 `close()`를 부른 인스턴스를 재실행에서 다시 쓰면 `acquire()`가 예외를 던진다. 인스턴스를 effect 안에서 만들거나 cleanup에서 `revokeAll()`만 부른다.
 
+### 미디어 스트림
+
+```ts
+import { hasGetUserMedia, stopMediaStream } from "@cp949/utilx";
+
+if (hasGetUserMedia()) {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  // 사용 후
+  stopMediaStream(stream); // 카메라 표시등이 꺼진다
+}
+```
+
+- `stopMediaStream(stream, kind?)`은 트랙을 멈추고 스트림에서 뺀다. `kind`를 `"audio"` 또는 `"video"`로 주면 해당 종류만 처리한다.
+- `hasGetUserMedia()`는 `http://` 같은 보안 컨텍스트가 아닌 페이지와 서버에서 `false`다.
+
 ## 1.x에서 옮기기
 
 2.0.0은 서브패스 없이 `@cp949/utilx` 하나로 import한다.
@@ -162,6 +216,36 @@ registry.close(); // 모두 해제하고 닫음, 되돌릴 수 없음
 | `delay(ms, signal, canceledAsError)`        | `sleep(ms, signal)`. abort되면 항상 `AbortError`로 거부한다                                |
 | `CleanupFn`, `DisposableLike`               | 유지. `DisposableLike`는 함수이거나 `dispose()`를 가진 객체만 받는다                       |
 | cleanup이 던진 예외                         | 1.x는 삼켰다. 2.0.0은 `DisposeError`로 던진다                                              |
+
+## @ocodelib/util에서 옮기기
+
+`@ocodelib/util`에서 이어받은 함수의 대응이다. 기능이 같아도 이름과 동작이 바뀐 것이 있다.
+
+| @ocodelib/util                                                                                   | @cp949/utilx                                                                                     |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `trim`, `isBlank`, `isNotBlank`, `strlen`                                                        | `trim`, `isBlank`, `isNotBlank`. `strlen`은 `str.length`를 쓴다. `isBlank`는 타입 가드가 아니다  |
+| `trimToUndef`                                                                                    | `trimToUndefined`                                                                                |
+| `isNil`, `isNullish`, `isNotNil`                                                                 | `isNil`, `isNotNil`                                                                              |
+| `formatByteCount`                                                                                | `formatByteCount`. `NaN`/`Infinity`는 `RangeError`, 옵션 `base`/`units` 추가                     |
+| `fileExtension(name, lowerCase, withDot)`                                                        | `fileExtension(name, { lowerCase, withDot })`. 점으로 시작하는 이름(`.bashrc`)은 `null`          |
+| `fileNamePart`                                                                                   | `fileBaseName`                                                                                   |
+| `downloadBlob`                                                                                   | `downloadBlob`. iOS의 `window.open` 대체 경로는 제거했다. object URL은 40초 뒤에 해제한다        |
+| `uint8-array`의 `isUint8Array`, `toUint8Array`                                                   | 같은 이름. `toUint8Array`는 `ArrayBuffer`와 모든 `ArrayBufferView`를 받는다                      |
+| `concatUint8Arrays(arrays, totalLength)`                                                         | `concatUint8Arrays(arrays)`. `totalLength` 인자는 제거했다                                       |
+| `areUint8ArraysEqual`, `compareUint8Arrays`                                                      | 같은 이름                                                                                        |
+| `indexOf`, `includes` (uint8-array)                                                              | `indexOfUint8Array`, `includesUint8Array`. 빈 검색 대상은 `-1` 대신 `0`                          |
+| `uint8ArrayToString`, `stringToUint8Array`                                                       | 같은 이름. 기본 인코딩은 `"utf-8"`                                                               |
+| `uint8ArrayToBase64`, `base64ToUint8Array`, `stringToBase64`, `base64ToString`                   | 같은 이름                                                                                        |
+| `uint8ArrayToHex`, `hexToUint8Array`                                                             | 같은 이름. 잘못된 입력은 `Error` 대신 `RangeError`                                               |
+| `assertUint8Array`, `getUintBE`                                                                  | 제거. 런타임 검사 대신 TypeScript 타입을 쓰고, `getUintBE`는 `DataView`로 직접 읽는다            |
+| `pusermedia`의 `closeUserMedia`, `closeUserMediaAudioTracks`, `closeUserMediaVideoTracks`        | `stopMediaStream(stream, kind?)` 하나로 합쳤다                                                   |
+| `hasGetUserMedia`                                                                                | 같은 이름. 서버에서도 안전하다                                                                   |
+| `fixUserMedia`                                                                                   | 제거. import만으로 `window`/`navigator`를 바꾸는 오래된 브라우저용 폴리필이다                    |
+| `types`의 `isString`, `isNumber`, `isBoolean`, `isPlainObject`, `isNonEmptyArray`, `isError`     | 같은 이름. `isPlainObject`는 타입 가드로 바꿨고 `isNonEmptyArray`는 `unknown` 대신 배열을 받는다 |
+| `types`의 `isFunction`                                                                           | 같은 이름. 기존 구현은 `async` 함수를 `false`로 판정했다                                         |
+| `types`의 `isPromise`                                                                            | `isPromiseLike`                                                                                  |
+| `types`의 `createTypeGuard`, `createTypeAssertion`, `isUnion`                                    | 제거                                                                                             |
+| `types`의 나머지 가드(`isEmail`, `isJSON`, `isBuffer`, `isElement`, Web API, 제너레이터 계열 등) | 제거. `instanceof`/`typeof`로 충분하거나 용도가 좁다                                             |
 
 ## 개발
 

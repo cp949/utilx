@@ -30,3 +30,7 @@
 - `fileExtension`, `fileBaseName`
 - `downloadBlob`
 - `DisposableScope.defer`, `DisposableScope.signal`
+- 타입 가드: `isString`, `isNumber`, `isBoolean`, `isFunction`, `isPlainObject`, `isNonEmptyArray`, `isPromiseLike`, `isError`
+- 바이너리: `isUint8Array`, `toUint8Array`, `concatUint8Arrays`, `areUint8ArraysEqual`, `compareUint8Arrays`, `indexOfUint8Array`, `includesUint8Array`, `stringToUint8Array`, `uint8ArrayToString`, `uint8ArrayToBase64`, `base64ToUint8Array`, `stringToBase64`, `base64ToString`, `uint8ArrayToHex`, `hexToUint8Array`
+- 미디어: `stopMediaStream`, `hasGetUserMedia`
+- `@ocodelib/util`에서 이어받은 함수의 대응표를 README에 추가했다.

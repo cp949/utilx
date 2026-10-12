@@ -35,3 +35,4 @@ export function downloadBlob(blob: Blob, fileName: string): void {
 }
 
 export { ObjectUrlRegistry } from "./object-url-registry.js";
+export { hasGetUserMedia, stopMediaStream } from "./media.js";
