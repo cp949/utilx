@@ -34,6 +34,15 @@ export function prependUnique<T>(
     seen.add(item);
     toAdd.push(item);
   }
-  if (toAdd.length > 0) result.unshift(...toAdd);
+  if (toAdd.length > 0) {
+    // 인자 개수 한도를 피하고, 기존 빈 슬롯을 보존하며 뒤로 옮긴다.
+    const originalLength = result.length;
+    result.length += toAdd.length;
+    result.copyWithin(toAdd.length, 0, originalLength);
+    let index = 0;
+    for (const item of toAdd) {
+      result[index++] = item;
+    }
+  }
   return result;
 }

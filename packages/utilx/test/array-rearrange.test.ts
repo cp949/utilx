@@ -49,6 +49,60 @@ describe("prependUnique", () => {
     expect(result).toBe(arr);
     expect(arr).toEqual([1, 2]);
   });
+
+  it.each([true, false])(
+    "inplace가 %s일 때 신규 항목 200,000개를 순서대로 추가한다",
+    (inplace) => {
+      const arr = [-1, -1];
+      if (!inplace) Object.freeze(arr);
+      const items = Array.from({ length: 200000 }, (_, index) => index);
+      items.push(0, 199999, -1);
+
+      const result = inplace
+        ? prependUnique(arr, items, { inplace: true })
+        : prependUnique(arr, items, { inplace: false });
+
+      expect(result).toHaveLength(200002);
+      expect(result.slice(0, 200000)).toEqual(
+        Array.from({ length: 200000 }, (_, index) => index),
+      );
+      expect(result.slice(200000)).toEqual([-1, -1]);
+      if (inplace) {
+        expect(result).toBe(arr);
+      } else {
+        expect(result).not.toBe(arr);
+        expect(arr).toEqual([-1, -1]);
+      }
+    },
+  );
+
+  it("원본을 수정할 때 기존 빈 슬롯을 보존한다", () => {
+    const arr = new Array<number | undefined>(3);
+    arr[1] = 2;
+
+    const result = prependUnique(arr, [1, 3, undefined], { inplace: true });
+
+    expect(result).toBe(arr);
+    expect(result).toHaveLength(5);
+    expect(Object.keys(result)).toEqual(["0", "1", "3"]);
+    expect(result[0]).toBe(1);
+    expect(result[1]).toBe(3);
+    expect(result[3]).toBe(2);
+  });
+
+  it("복사할 때 기존 빈 슬롯을 undefined로 채우고 원본은 보존한다", () => {
+    const arr = new Array<number | undefined>(3);
+    arr[1] = 2;
+    Object.freeze(arr);
+
+    const result = prependUnique(arr, [1, 3, undefined], { inplace: false });
+
+    expect(result).not.toBe(arr);
+    expect(result).toStrictEqual([1, 3, undefined, 2, undefined]);
+    expect(arr).toHaveLength(3);
+    expect(Object.keys(arr)).toEqual(["1"]);
+    expect(arr[1]).toBe(2);
+  });
 });
 
 describe("rotateLeft / rotateRight", () => {
