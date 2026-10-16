@@ -33,7 +33,11 @@ function safeJson(value: unknown): string | undefined {
  * toError({ code: 1 }).cause; // { code: 1 }
  */
 export function toError(err: unknown): ErrorWithCause {
-  if (isError(err)) return err;
+  try {
+    if (isError(err)) return err;
+  } catch {
+    // Proxy나 태그 getter로 판별이 실패해도 기존 메시지 변환을 계속한다.
+  }
 
   let message: string | undefined;
   if (err === null || err === undefined) {

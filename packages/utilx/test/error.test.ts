@@ -72,6 +72,64 @@ describe("toError", () => {
     expect(toError(foreign)).toBe(foreign);
   });
 
+  it("태그 getter가 던져도 문자열 message를 보존한다", () => {
+    const value = {
+      message: "원래 메시지",
+      get [Symbol.toStringTag](): string {
+        throw new Error("태그 조회 실패");
+      },
+    };
+
+    const error = toError(value);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe("원래 메시지");
+    expect(error.cause).toBe(value);
+  });
+
+  it("Proxy의 프로토타입 조회가 던져도 JSON 메시지를 만든다", () => {
+    const value = new Proxy(
+      { code: 7 },
+      {
+        getPrototypeOf(): never {
+          throw new Error("프로토타입 조회 실패");
+        },
+      },
+    );
+
+    const error = toError(value);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe('{"code":7}');
+    expect(error.cause).toBe(value);
+  });
+
+  it("태그 조회와 JSON 변환이 던져도 문자열 변환을 계속한다", () => {
+    const value = {
+      get [Symbol.toStringTag](): string {
+        throw new Error("태그 조회 실패");
+      },
+      toJSON(): never {
+        throw new Error("JSON 변환 실패");
+      },
+      toString: () => "대체 메시지",
+    };
+
+    const error = toError(value);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe("대체 메시지");
+    expect(error.cause).toBe(value);
+  });
+
+  it("폐기된 Proxy는 unknown 메시지와 원래 cause로 변환한다", () => {
+    const { proxy, revoke } = Proxy.revocable({}, {});
+    revoke();
+
+    const error = toError(proxy);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe("unknown");
+    expect(error.cause).toBe(proxy);
+    expect(Object.keys(error)).not.toContain("cause");
+  });
+
   it("문자열은 message가 되고 원래 값이 cause에 남는다", () => {
     const error = toError("실패");
     expect(error).toBeInstanceOf(Error);
