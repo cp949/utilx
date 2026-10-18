@@ -226,6 +226,16 @@ describe("swapItems", () => {
     expect(Object.keys(result)).toEqual(["0", "1"]);
   });
 
+  it("음수 소수가 길이를 더해 정수로 반올림되어도 바꾸지 않는다", () => {
+    // -0.9999999999999999는 길이 3을 더하면 반올림되어 정수 2가 된다.
+    expect(
+      swapItems(["a", "b", "c"], -0.9999999999999999, 0, { inplace: false }),
+    ).toEqual(["a", "b", "c"]);
+    expect(
+      swapItems(["a", "b", "c"], 0, -0.9999999999999999, { inplace: false }),
+    ).toEqual(["a", "b", "c"]);
+  });
+
   it("같은 위치끼리는 그대로다", () => {
     expect(swapItems(["a", "b"], 1, 1, { inplace: false })).toEqual(["a", "b"]);
   });

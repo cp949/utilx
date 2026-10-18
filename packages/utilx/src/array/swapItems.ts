@@ -4,10 +4,10 @@ import { workingArray } from "./workingArray.internal.js";
 
 /** 음수 인덱스를 뒤에서부터 센 위치로 바꾼다. 범위 밖이거나 정수가 아니면 `-1`이다. */
 function resolveIndex(length: number, index: number): number {
+  // 음수 소수는 길이를 더하면 부동소수 반올림으로 정수가 될 수 있어 원래 값을 검사한다.
+  if (!Number.isInteger(index)) return -1;
   const resolved = index < 0 ? length + index : index;
-  return Number.isInteger(resolved) && resolved >= 0 && resolved < length
-    ? resolved
-    : -1;
+  return resolved >= 0 && resolved < length ? resolved : -1;
 }
 
 /**
