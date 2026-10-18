@@ -16,15 +16,18 @@
     "check:readme": "node scripts/sync-readme.mjs --check",
     "sync:readme": "node scripts/sync-readme.mjs --write",
     "check:consumer": "node scripts/check-consumer.mjs",
+    "check:bundle": "node scripts/check-bundle.mjs --check",
+    "sync:bundle": "node scripts/check-bundle.mjs --write",
     "test:gates": "node --test \"scripts/test/*.test.mjs\"",
     "test:browser": "pnpm build && node scripts/run-browser.mjs chromium-latest",
     "test:browser:chrome83": "pnpm build && node scripts/run-browser.mjs chrome83",
-    "verify": "pnpm lint && pnpm format:check && pnpm build && pnpm check:escompat && pnpm check:deps && pnpm check:readme && pnpm check:consumer && pnpm test:gates && pnpm check-types && pnpm check-types:e2e && pnpm test"
+    "verify": "pnpm lint && pnpm format:check && pnpm build && pnpm check:escompat && pnpm check:deps && pnpm check:readme && pnpm check:consumer && pnpm check:bundle && pnpm test:gates && pnpm check-types && pnpm check-types:e2e && pnpm test"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.63.0",
     "@types/node": "24.13.6",
+    "esbuild": "0.28.2",
     "eslint": "10.11.0",
     "eslint-plugin-es-x": "9.7.0",
     "fast-check": "4.10.2",

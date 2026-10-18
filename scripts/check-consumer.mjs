@@ -15,7 +15,6 @@
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
-  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -24,7 +23,7 @@ import {
 import { tmpdir } from "node:os";
 import { join, posix } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { extractTarball, packPackage } from "./pack.mjs";
+import { createConsumerFromPackage } from "./pack.mjs";
 import { listPublishablePackages } from "./workspace-packages.mjs";
 
 /** 이 스크립트가 속한 저장소의 루트. */
@@ -307,20 +306,8 @@ function checkTypeScriptConsumers(consumerDir, specifiers) {
 function checkPackage(pkg) {
   const out = mkdtempSync(join(tmpdir(), "consumer-"));
   try {
-    const { tarball, files, manifest } = packPackage(pkg.dir, out);
-
-    const consumerDir = join(out, "consumer");
-    const packageRoot = join(
-      consumerDir,
-      "node_modules",
-      ...String(manifest.name).split("/"),
-    );
-    mkdirSync(packageRoot, { recursive: true });
-    writeFileSync(
-      join(consumerDir, "package.json"),
-      JSON.stringify({ name: "consumer", private: true, type: "module" }),
-    );
-    extractTarball(tarball, packageRoot);
+    const { consumerDir, packageRoot, files, manifest } =
+      createConsumerFromPackage(pkg.dir, out);
 
     const staticProblems = [
       ...checkFileSet(files),

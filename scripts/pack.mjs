@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
-import { statSync } from "node:fs";
+import { mkdirSync, statSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 /** tarball 안의 항목은 모두 `package/` 접두사를 가진다. */
 const TARBALL_PREFIX = "package/";
@@ -83,4 +84,31 @@ export function packPackage(packageDir, destination) {
     manifest: JSON.parse(readTarballFile(tarball, "package.json")),
     size: statSync(tarball).size,
   };
+}
+
+/**
+ * 패키지를 pack하고 `destination/consumer/node_modules/<이름>`에 풀어 격리된 소비자 디렉터리를 만든다.
+ * 소스 경로와 workspace symlink에는 의존하지 않는다. 소비자 검사들이 이 구성을 공유한다.
+ *
+ * @param {string} packageDir 패키지 디렉터리
+ * @param {string} destination 이미 존재하는 임시 디렉터리
+ * @returns {{ consumerDir: string, packageRoot: string, files: string[], manifest: Record<string, unknown> }}
+ */
+export function createConsumerFromPackage(packageDir, destination) {
+  const { tarball, files, manifest } = packPackage(packageDir, destination);
+
+  const consumerDir = join(destination, "consumer");
+  const packageRoot = join(
+    consumerDir,
+    "node_modules",
+    ...String(manifest.name).split("/"),
+  );
+  mkdirSync(packageRoot, { recursive: true });
+  writeFileSync(
+    join(consumerDir, "package.json"),
+    JSON.stringify({ name: "consumer", private: true, type: "module" }),
+  );
+  extractTarball(tarball, packageRoot);
+
+  return { consumerDir, packageRoot, files, manifest };
 }
