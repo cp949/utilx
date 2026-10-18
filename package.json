@@ -8,15 +8,19 @@
     "format": "prettier --write \"**/*.{ts,mjs,js,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,mjs,js,json,md}\"",
     "check-types": "pnpm --filter @cp949/utilx check-types",
+    "check-types:e2e": "tsc --noEmit -p e2e/tsconfig.json",
     "test": "pnpm --filter @cp949/utilx test",
     "check:escompat": "node scripts/check-escompat.mjs",
     "check:deps": "node scripts/check-deps.mjs",
     "check:consumer": "node scripts/check-consumer.mjs",
     "test:gates": "node --test \"scripts/test/*.test.mjs\"",
-    "verify": "pnpm lint && pnpm format:check && pnpm build && pnpm check:escompat && pnpm check:deps && pnpm check:consumer && pnpm test:gates && pnpm check-types && pnpm test"
+    "test:browser": "pnpm build && node scripts/run-browser.mjs chromium-latest",
+    "test:browser:chrome83": "pnpm build && node scripts/run-browser.mjs chrome83",
+    "verify": "pnpm lint && pnpm format:check && pnpm build && pnpm check:escompat && pnpm check:deps && pnpm check:consumer && pnpm test:gates && pnpm check-types && pnpm check-types:e2e && pnpm test"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@playwright/test": "1.63.0",
     "@types/node": "24.13.6",
     "eslint": "10.11.0",
     "eslint-plugin-es-x": "9.7.0",

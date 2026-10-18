@@ -1,0 +1,65 @@
+import { expect, test } from "../fixtures.js";
+
+/** 버튼 id, 기대 파일명, 기대 내용. 내용은 바이트 단위로 비교한다. */
+const CASES: {
+  title: string;
+  button: string;
+  fileName: string;
+  body: Buffer;
+}[] = [
+  {
+    title: "downloadBlob: ASCII 파일명",
+    button: "dl-blob-ascii",
+    fileName: "hello.txt",
+    body: Buffer.from("hello"),
+  },
+  {
+    title: "downloadBlob: 한글 파일명과 한글 내용",
+    button: "dl-blob-korean",
+    fileName: "보고서 2026.txt",
+    body: Buffer.from("안녕하세요", "utf8"),
+  },
+  {
+    title: "downloadBlob: 0~255 바이너리 내용",
+    button: "dl-blob-binary",
+    fileName: "bytes.bin",
+    body: Buffer.from(Uint8Array.from({ length: 256 }, (_, index) => index)),
+  },
+  {
+    title: "downloadText: 한글 UTF-8 내용과 mimeType 옵션",
+    button: "dl-text-korean",
+    fileName: "데이터.csv",
+    body: Buffer.from("한글,데이터\n1,2", "utf8"),
+  },
+  {
+    title: "downloadText: 기본 MIME",
+    button: "dl-text-default",
+    fileName: "plain.txt",
+    body: Buffer.from("plain text"),
+  },
+  {
+    title: "downloadUrl: 같은 출처 URL에 파일명 지정",
+    button: "dl-url-named",
+    fileName: "renamed.txt",
+    body: Buffer.from("sample file\n"),
+  },
+  {
+    title: "downloadUrl: 파일명을 생략하면 URL의 마지막 경로를 쓴다",
+    button: "dl-url-unnamed",
+    fileName: "sample.txt",
+    body: Buffer.from("sample file\n"),
+  },
+];
+
+test.describe("실제 클릭 다운로드", () => {
+  for (const { title, button, fileName, body } of CASES) {
+    test(title, async ({ openHarness, captureDownload }) => {
+      const page = await openHarness();
+
+      const saved = await captureDownload(() => page.click(`#${button}`));
+
+      expect(saved.fileName).toBe(fileName);
+      expect(saved.body.equals(body)).toBe(true);
+    });
+  }
+});
