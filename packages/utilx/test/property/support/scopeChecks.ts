@@ -60,6 +60,8 @@ interface CleanupLog {
   /** `disposed`일 때 실행 시작 시점의 `signal.aborted`. 아니면 `null`. */
   readonly aborted: boolean | null;
   threw: boolean;
+  /** cleanup이 던진 예외. 던지지 않았으면 `undefined`. */
+  error: unknown;
 }
 
 interface TimerLog {
@@ -117,6 +119,7 @@ export function checkScopeSequence(
         disposed,
         aborted: disposed ? scope.signal.aborted : null,
         threw: false,
+        error: undefined,
       };
       log.push(item);
       try {
@@ -125,6 +128,7 @@ export function checkScopeSequence(
         if (behavior === "reenterDefer") register("defer", "plain");
       } catch (error) {
         item.threw = true;
+        item.error = error;
         throw error;
       }
     };
@@ -289,10 +293,12 @@ export function checkScopeSequence(
           assert.equal(log.length, start);
           return;
         }
-        const failed = log
+        const thrown = log
           .slice(start)
           .filter(isCleanupLog)
-          .filter((item) => item.disposed && item.threw).length;
+          .filter((item) => item.disposed && item.threw)
+          .map((item) => item.error);
+        const failed = thrown.length;
         if (failed === 0) {
           assert.equal(
             error,
@@ -309,6 +315,12 @@ export function checkScopeSequence(
             failed,
             "실패한 cleanup을 모두 모은다",
           );
+          for (const cause of thrown) {
+            assert.ok(
+              error.errors.includes(cause),
+              "cleanup이 던진 예외 객체를 그대로 모은다",
+            );
+          }
         }
       }
     }

@@ -123,6 +123,11 @@ export function checkToUint8Array(
           : Buffer.from(buffer, byteOffset, byteLength);
 
   const result = toUint8Array(view);
+  assert.equal(
+    Object.getPrototypeOf(result),
+    Uint8Array.prototype,
+    "Buffer를 포함해 어떤 view든 순수 Uint8Array를 돌려준다",
+  );
   assert.equal(result.buffer, buffer, "복사하지 않고 같은 ArrayBuffer를 쓴다");
   assert.equal(result.byteOffset, byteOffset);
   assert.equal(result.byteLength, byteLength);
@@ -150,22 +155,43 @@ export function checkHexInput(text: string): void {
   }
 }
 
-/**
- * base64 문자열은 바이트가 되거나 `InvalidCharacterError`를 던진다.
- * 바이트가 되면 다시 인코딩한 뒤 디코딩해도 같고, `-`·`_` 표기는 `+`·`/` 표기와 같은 바이트다.
- */
-export function checkBase64Input(text: string): void {
-  let bytes: Uint8Array;
+/** 디코딩한 바이트 또는 `InvalidCharacterError`면 `null`. 다른 예외는 검사 실패다. */
+function decodeBase64(text: string): number[] | null {
   try {
-    bytes = base64ToUint8Array(text);
+    return bytesOf(base64ToUint8Array(text));
   } catch (error) {
     assert.ok(
       error instanceof DOMException && error.name === "InvalidCharacterError",
       `잘못된 base64는 InvalidCharacterError여야 한다: ${String(error)}`,
     );
-    return;
+    return null;
   }
+}
+
+/** atob가 건너뛰는 ASCII 공백. */
+const ASCII_WHITESPACE = /[\t\n\f\r ]/g;
+
+/**
+ * base64 문자열은 바이트가 되거나 `InvalidCharacterError`를 던진다.
+ * 공백을 지워도 결과가 같다. 바이트가 되면 다시 인코딩한 뒤 디코딩해도 같고,
+ * `-`·`_` 표기는 `+`·`/` 표기와 같은 바이트이며, 끝의 패딩을 지워도 같은 바이트다.
+ */
+export function checkBase64Input(text: string): void {
+  const decoded = decodeBase64(text);
+  const compact = text.replace(ASCII_WHITESPACE, "");
+  assert.deepEqual(
+    decodeBase64(compact),
+    decoded,
+    "공백을 지운 문자열과 결과가 같다",
+  );
+  if (decoded === null) return;
+  const bytes = Uint8Array.from(decoded);
   assert.ok(!text.includes("!"), "base64 문자가 아닌 문자가 있으면 던진다");
+  assert.deepEqual(
+    decodeBase64(compact.replace(/=+$/, "")),
+    decoded,
+    "패딩을 지워도 같은 바이트다",
+  );
   assert.deepEqual(
     bytesOf(base64ToUint8Array(uint8ArrayToBase64(bytes))),
     bytesOf(bytes),

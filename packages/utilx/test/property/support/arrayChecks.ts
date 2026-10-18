@@ -6,6 +6,7 @@ import {
   rotateRight,
   swapItems,
 } from "../../../src/array/index.js";
+import { show } from "./enumerate.js";
 
 /** 입력 배열에서 빈 슬롯을 나타내는 표식. */
 export const HOLE = Symbol("빈 슬롯");
@@ -53,11 +54,11 @@ function holeCount(array: readonly unknown[]): number {
   return snapshot(array).filter((slot) => slot === HOLE).length;
 }
 
-/** 값의 등장 횟수. 요소는 `Object.is` 기준으로 센다. */
+/** 값의 등장 횟수. `show`는 `-0`과 `0`, `undefined`와 문자열 `"undefined"`를 구분하므로 `Object.is` 기준으로 센다. */
 function tally(values: readonly Plain[]): string[] {
   const counts = new Map<string, number>();
   for (const value of values) {
-    const key = typeof value === "number" ? `n:${value}` : `s:${String(value)}`;
+    const key = show(value);
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   return [...counts].map(([key, count]) => `${key}×${count}`).sort();
@@ -162,19 +163,22 @@ export function checkMovePlacement(
     identity.filter((value) => value !== item),
     "옮기지 않은 항목의 상대 순서가 유지된다",
   );
-  if (Number.isInteger(toIndex) && toIndex >= 0 && toIndex <= length - 1) {
-    assert.equal(
-      result[toIndex],
-      item,
-      "0 이상 length-1 이하 도착 인덱스에 놓인다",
-    );
-  }
-  if (toIndex === Number.POSITIVE_INFINITY || toIndex >= length - 1) {
-    assert.equal(result[length - 1], item, "끝을 넘으면 마지막에 놓인다");
-  }
-  if (toIndex === Number.NEGATIVE_INFINITY) {
-    assert.equal(result[0], item, "-Infinity는 맨 앞에 놓인다");
-  }
+  assert.equal(
+    result.indexOf(item),
+    insertPosition(length - 1, toIndex),
+    "항목을 뺀 배열에서 splice의 시작 위치 규칙대로 놓인다",
+  );
+}
+
+/**
+ * 길이 `length` 배열에 `splice(start, 0, item)`으로 넣을 때 항목이 놓이는 위치.
+ * ECMAScript의 splice 시작 위치 규칙이다: NaN은 0, 소수는 0 쪽으로 버리고, 음수는 뒤에서 세며, 양 끝으로 맞춘다.
+ */
+function insertPosition(length: number, start: number): number {
+  // `|| 0`은 NaN과 -0을 0으로 맞춘다. -0을 남기면 strict assert가 0과 다르게 본다.
+  const relative = Math.trunc(start) || 0;
+  if (relative < 0) return Math.max(length + relative, 0);
+  return Math.min(relative, length);
 }
 
 export function checkRotate(
@@ -207,7 +211,7 @@ export function checkRotate(
     assert.deepEqual(
       plain(result),
       expected,
-      "왼쪽으로 돌리면 result[i]는 원래 (i+count) 위치의 값이다",
+      "result[i]는 원래 (i+count) 위치(rotateRight는 i-count)의 값이다",
     );
   }
   checkSparseReadsAsUndefined(before, result, (array) =>

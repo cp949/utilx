@@ -65,7 +65,7 @@ describe("바이너리 변환 성질", () => {
     expect(count).toBe(1 + 6 + 36 + 216 + 1296);
   });
 
-  it("base64 문자열은 바이트가 되거나 InvalidCharacterError이고 URL-safe 표기와 일치한다", () => {
+  it("base64 문자열은 바이트가 되거나 InvalidCharacterError이고 공백·끝 패딩·URL-safe 표기와 무관하다", () => {
     const cases = [
       ...sequencesOf(["A", "Q", "=", "-", "_", "+", "/", " ", "\n", "!"], 4),
     ].map((chars) => chars.join(""));

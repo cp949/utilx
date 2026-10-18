@@ -18,4 +18,7 @@ function readInteger(name: string, fallback?: number): number {
 fc.configureGlobal({
   numRuns: readInteger("EXPLORE_RUNS", 1000),
   seed: readInteger("EXPLORE_SEED"),
+  // 기본값(false)이면 maxLength를 줘도 기본 크기(small)에 묶여 길이가 10 안팎에서 끝난다.
+  // 지정한 maxLength·maxKeys까지 실제로 만들도록 한다.
+  defaultSizeToMaxWhenMaxSpecified: true,
 });
