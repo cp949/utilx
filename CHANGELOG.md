@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-10-19
+
 ### 수정
 
 - `isDeepEqual`: 서로 다른 길이의 순환 구조를 비교할 때 `RangeError: Maximum call stack size exceeded`를 던지던 문제를 고쳤다. 비교한 객체 쌍을 덮어쓰지 않고 모두 기록한다.
