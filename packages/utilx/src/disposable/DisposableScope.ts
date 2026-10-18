@@ -18,10 +18,11 @@ function toCleanup(resource: DisposableLike): CleanupFn {
 /**
  * 여러 cleanup을 등록해 두었다가 `dispose()`에서 등록의 역순(LIFO)으로 한 번에 실행한다.
  *
+ * - `dispose()`는 `signal`을 먼저 abort한 뒤 cleanup을 실행한다. cleanup 중에는 `signal.aborted`가 항상 `true`다.
  * - cleanup이 던져도 나머지는 끝까지 실행하고, 마지막에 `DisposeError`로 모아서 던진다.
- * - `dispose()`는 여러 번 호출해도 한 번만 실행한다.
+ * - `dispose()`는 여러 번 호출해도 한 번만 실행한다. abort 리스너나 cleanup 안에서 다시 호출해도 무시한다.
  * - 같은 대상을 `use`로 두 번 등록하면 cleanup도 두 번 실행한다.
- * - `dispose()`된 scope에 등록하면 대상을 즉시 정리한 뒤 예외를 던진다.
+ * - `dispose()`된 scope에 등록하면 대상을 즉시 정리한 뒤 예외를 던진다. `dispose()`가 시작된 뒤에는 abort 리스너와 cleanup 안에서 등록해도 같다.
  *
  * @example
  * const scope = new DisposableScope();
@@ -49,7 +50,9 @@ export class DisposableScope {
 
   /**
    * scope가 `dispose()`될 때 abort되는 시그널이다. `fetch` 등 취소 가능한 작업에 넘긴다.
-   * 이미 `dispose()`된 scope에서 읽으면 이미 abort된 시그널을 돌려준다.
+   * abort는 cleanup보다 먼저 일어난다. `dispose()`가 시작된 뒤에 읽으면, cleanup 안에서 처음 읽어도 이미 abort된 시그널을 돌려준다.
+   *
+   * abort 리스너는 아직 정리되지 않은 자원을 볼 수 있다. 리스너가 던지는 예외는 `DisposeError`에 모이지 않고 `AbortSignal`의 규칙대로 전역에 보고된다.
    */
   get signal(): AbortSignal {
     if (!this.controller) {
@@ -112,9 +115,9 @@ export class DisposableScope {
   }
 
   /**
-   * 등록된 cleanup을 등록의 역순으로 실행하고 scope를 닫는다. `signal`도 abort한다.
+   * `signal`을 abort한 뒤, 등록된 cleanup을 등록의 역순으로 실행하고 scope를 닫는다.
    *
-   * @throws {DisposeError} 하나 이상의 cleanup이 던졌을 때. 나머지는 모두 실행한 뒤에 던진다
+   * @throws {DisposeError} abort 또는 하나 이상의 cleanup이 던졌을 때. `abort()` 자체가 던지면 `errors`의 맨 앞에 담는다. 나머지는 모두 실행한 뒤에 던진다
    */
   dispose(): void {
     if (this.isDisposed) return;
@@ -124,6 +127,13 @@ export class DisposableScope {
     this.entries.clear();
 
     const errors: unknown[] = [];
+    // abort를 먼저 한다. cleanup이 읽는 signal 상태를 사전 조회 여부와 무관하게 같게 하기 위해서다.
+    // 규격상 abort()는 리스너 예외를 던지지 않지만, 던지는 구현이어도 cleanup은 건너뛰지 않는다.
+    try {
+      this.controller?.abort();
+    } catch (error) {
+      errors.push(error);
+    }
     for (const cleanup of cleanups) {
       try {
         cleanup();
@@ -131,7 +141,6 @@ export class DisposableScope {
         errors.push(error);
       }
     }
-    this.controller?.abort();
 
     if (errors.length > 0) throw new DisposeError(errors);
   }

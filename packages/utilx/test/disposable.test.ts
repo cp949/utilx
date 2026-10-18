@@ -151,6 +151,158 @@ describe("DisposableScope", () => {
     });
   });
 
+  describe("abort와 cleanup 순서", () => {
+    it("signal을 사전에 읽었든 아니든 cleanup 중에는 abort되어 있다", () => {
+      const preRead = new DisposableScope();
+      const preReadSignal = preRead.signal;
+      const notRead = new DisposableScope();
+      const observed: boolean[] = [];
+      preRead.defer(() => observed.push(preReadSignal.aborted));
+      notRead.defer(() => observed.push(notRead.signal.aborted));
+
+      preRead.dispose();
+      notRead.dispose();
+
+      expect(observed).toEqual([true, true]);
+    });
+
+    it("abort 리스너는 모든 cleanup보다 먼저 실행된다", () => {
+      const scope = new DisposableScope();
+      const order: string[] = [];
+      scope.signal.addEventListener("abort", () => order.push("abort"));
+      scope.defer(() => order.push("cleanup1"));
+      scope.defer(() => order.push("cleanup2"));
+
+      scope.dispose();
+
+      expect(order).toEqual(["abort", "cleanup2", "cleanup1"]);
+    });
+
+    it("abort 리스너 안에서 dispose를 다시 불러도 재진입하지 않는다", () => {
+      const scope = new DisposableScope();
+      const cleanup = vi.fn();
+      const onAbort = vi.fn(() => {
+        scope.dispose();
+      });
+      scope.signal.addEventListener("abort", onAbort);
+      scope.defer(cleanup);
+
+      scope.dispose();
+
+      expect(onAbort).toHaveBeenCalledOnce();
+      expect(cleanup).toHaveBeenCalledOnce();
+    });
+
+    it("cleanup 안에서 처음 읽은 signal도 이미 abort되어 있다", () => {
+      const scope = new DisposableScope();
+      let aborted: boolean | undefined;
+      scope.defer(() => {
+        aborted = scope.signal.aborted;
+      });
+
+      scope.dispose();
+
+      expect(aborted).toBe(true);
+    });
+
+    it("abort 리스너 안의 등록은 대상을 즉시 정리하고 예외를 던진다", () => {
+      const scope = new DisposableScope();
+      const late = vi.fn();
+      let thrown: unknown;
+      scope.signal.addEventListener("abort", () => {
+        try {
+          scope.defer(late);
+        } catch (error) {
+          thrown = error;
+        }
+      });
+
+      scope.dispose();
+
+      expect(thrown).toBeInstanceOf(Error);
+      expect(late).toHaveBeenCalledOnce();
+      expect(scope.size).toBe(0);
+    });
+
+    it("cleanup 안의 등록은 대상을 즉시 정리하고, 던진 예외는 DisposeError에 모인다", () => {
+      const scope = new DisposableScope();
+      const late = vi.fn();
+      const after = vi.fn();
+      scope.defer(after);
+      scope.defer(() => {
+        scope.use(late);
+      });
+
+      let caught: unknown;
+      try {
+        scope.dispose();
+      } catch (error) {
+        caught = error;
+      }
+
+      expect(caught).toBeInstanceOf(DisposeError);
+      const { errors } = caught as DisposeError;
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toBeInstanceOf(Error);
+      expect(late).toHaveBeenCalledOnce();
+      expect(after).toHaveBeenCalledOnce();
+      expect(scope.size).toBe(0);
+    });
+
+    it("abort가 던져도 cleanup은 모두 실행하고 그 예외를 errors 맨 앞에 담는다", () => {
+      const scope = new DisposableScope();
+      void scope.signal;
+      const abortError = new Error("abort 실패");
+      const cleanupError = new Error("cleanup 실패");
+      const last = vi.fn();
+      scope.defer(last);
+      scope.defer(() => {
+        throw cleanupError;
+      });
+      const abort = vi
+        .spyOn(AbortController.prototype, "abort")
+        .mockImplementation(() => {
+          throw abortError;
+        });
+
+      try {
+        let caught: unknown;
+        try {
+          scope.dispose();
+        } catch (error) {
+          caught = error;
+        }
+
+        expect(caught).toBeInstanceOf(DisposeError);
+        expect((caught as DisposeError).errors).toEqual([
+          abortError,
+          cleanupError,
+        ]);
+        expect(last).toHaveBeenCalledOnce();
+        expect(abort).toHaveBeenCalledOnce();
+      } finally {
+        abort.mockRestore();
+      }
+    });
+
+    it("dispose를 반복해도 abort는 한 번이고, 첫 dispose가 던졌어도 두 번째는 던지지 않는다", () => {
+      const scope = new DisposableScope();
+      const onAbort = vi.fn();
+      scope.signal.addEventListener("abort", onAbort);
+      scope.defer(() => {
+        throw new Error("실패");
+      });
+
+      expect(() => {
+        scope.dispose();
+      }).toThrow(DisposeError);
+      expect(() => {
+        scope.dispose();
+      }).not.toThrow();
+      expect(onAbort).toHaveBeenCalledOnce();
+    });
+  });
+
   describe("setTimeout", () => {
     beforeEach(() => {
       vi.useFakeTimers();

@@ -27,6 +27,14 @@
 - `toError`: 위장 객체가 `isError`를 통과해 `message`가 `undefined`인 채 그대로 반환되던 문제는 `isError` 수정으로 해결된다. 위장 객체는 이제 새 `Error`로 감싸고 원본을 `cause`에 담는다.
   - `isError`가 `true`인 값은 전과 같이 같은 인스턴스를 돌려준다. `message` 등 필드 값은 검증하지 않는다.
 
+### 변경
+
+- `DisposableScope.dispose()`: `signal`을 cleanup보다 먼저 abort한다. 전에는 cleanup을 모두 실행한 뒤 abort했다.
+  - cleanup 중 `signal.aborted`는 항상 `true`다. 전에는 `signal`을 먼저 읽었으면 `false`, 읽지 않았으면 `true`였다.
+  - 동기 abort 리스너는 모든 cleanup보다 먼저 실행된다. 전에는 모든 cleanup 뒤에 실행됐다. 리스너가 cleanup 결과에 의존하면 동작이 바뀐다.
+  - `abort()`가 동기 예외를 던지는 구현이어도 cleanup은 모두 실행한다. 그 예외는 `DisposeError.errors`의 맨 앞에 담긴다. 규격상 abort 리스너의 예외는 `DisposeError`에 모이지 않고 전역에 보고된다.
+  - 반복 `dispose()`, abort 리스너와 cleanup 안의 `dispose()` 재진입, `dispose()` 시작 뒤의 등록(대상을 즉시 정리하고 예외를 던진다)은 전과 같다.
+
 ## 2.1.0
 
 ### 추가

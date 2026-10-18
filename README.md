@@ -345,8 +345,8 @@ await request;
 - `use`는 함수이거나 `dispose()`를 가진 객체를 받는다. `close()` 등 다른 이름은 함수로 감싼다.
 - `defer(cleanup)`은 cleanup을 등록하고, 지금 실행하는 함수를 돌려준다.
 - cleanup이 던져도 나머지는 끝까지 실행한다. 마지막에 `DisposeError`(`errors` 배열)로 모아서 던진다.
-- `dispose()`는 여러 번 호출해도 한 번만 실행한다. `dispose()`된 scope에 등록하면 대상을 즉시 정리한 뒤 예외를 던진다.
-- `scope.signal`은 `dispose()` 때 abort된다.
+- `dispose()`는 여러 번 호출해도 한 번만 실행한다. `dispose()`가 시작된 뒤 등록하면(abort 리스너·cleanup 안 포함) 대상을 즉시 정리한 뒤 예외를 던진다.
+- `scope.signal`은 `dispose()` 때 cleanup보다 먼저 abort된다. cleanup 중에는 `signal.aborted`가 항상 `true`다.
 - `addEventListenerWithCleanup`은 `window`, `document`, `HTMLElement`에서 이벤트 이름에 맞는 이벤트 타입이 추론된다.
 
 ### 비동기
