@@ -180,6 +180,45 @@ describe("moveItem", () => {
     expect(moveItem(["a", "b"], -3, 0, { inplace: false })).toEqual(["a", "b"]);
   });
 
+  it("fromIndex가 정수가 아니면 옮기지 않고 요소와 길이를 보존한다", () => {
+    // -0.9999999999999999는 길이 3을 더하면 반올림되어 정수 2가 된다.
+    const invalid = [
+      NaN,
+      Infinity,
+      -Infinity,
+      0.5,
+      1.5,
+      -0.5,
+      -1.5,
+      -0.9999999999999999,
+    ];
+    for (const fromIndex of invalid) {
+      expect(moveItem([], fromIndex, 0, { inplace: false })).toEqual([]);
+      const empty: string[] = [];
+      expect(moveItem(empty, fromIndex, 0, { inplace: true })).toBe(empty);
+      expect(empty).toEqual([]);
+
+      const source = ["a", "b", "c"];
+      const copied = moveItem(source, fromIndex, 0, { inplace: false });
+      expect(copied).not.toBe(source);
+      expect(copied).toEqual(["a", "b", "c"]);
+      expect(source).toEqual(["a", "b", "c"]);
+
+      const arr = ["a", "b", "c"];
+      expect(moveItem(arr, fromIndex, 2, { inplace: true })).toBe(arr);
+      expect(arr).toEqual(["a", "b", "c"]);
+    }
+  });
+
+  it("toIndex는 splice의 보정 규칙을 따른다", () => {
+    const move = (toIndex: number) =>
+      moveItem(["a", "b", "c"], 0, toIndex, { inplace: false });
+    expect(move(-1)).toEqual(["b", "a", "c"]);
+    expect(move(Infinity)).toEqual(["b", "c", "a"]);
+    expect(move(-Infinity)).toEqual(["a", "b", "c"]);
+    expect(move(NaN)).toEqual(["a", "b", "c"]);
+  });
+
   it("같은 위치로 옮기면 그대로다", () => {
     expect(moveItem(["a", "b"], 1, 1, { inplace: false })).toEqual(["a", "b"]);
   });

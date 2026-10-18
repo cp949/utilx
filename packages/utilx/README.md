@@ -160,7 +160,7 @@ removeFirst(checked, "a", { inplace: true }); // checked는 ['b']
 - `appendUnique`, `prependUnique`는 배열에 없는 값만 끝 또는 앞에 추가한다. `items` 안의 중복도 한 번만 추가하고, 원래 배열의 중복은 손대지 않는다. `prependUnique`는 `items`의 순서를 유지한다.
 - `removeFirst`는 값이 같은 첫 항목만 뺀다.
 - `updateFirst`는 조건에 맞는 첫 항목을 바꾼다. 맞는 항목이 없으면 `undefined`다.
-- `moveItem`의 `fromIndex`가 음수이면 뒤에서부터 센다. 범위 밖이면 옮기지 않는다. `toIndex`는 항목을 뺀 뒤의 배열에 끼워 넣는 위치이고, 범위를 넘으면 양 끝으로 맞춘다.
+- `moveItem`의 `fromIndex`가 음수이면 뒤에서부터 센다. 범위 밖이거나 정수가 아니면 옮기지 않는다. `toIndex`는 항목을 뺀 뒤의 배열에 끼워 넣는 위치이고, 범위를 넘으면 양 끝으로 맞춘다.
 - `swapItems`는 두 위치의 항목을 바꾼다. 음수 인덱스는 뒤에서부터 센다. 하나라도 범위 밖이거나 정수가 아니면 바꾸지 않는다.
 - `swapValues`는 두 값의 첫 위치를 바꾼다. 둘 중 하나라도 배열에 없으면 `undefined`다.
 - `rotateLeft`, `rotateRight`는 `count`칸 돌린다. `count`가 길이 이상이면 나머지만큼 돌리고, 음수이면 반대 방향이다. 정수가 아니면 `RangeError`다.
