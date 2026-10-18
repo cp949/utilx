@@ -137,6 +137,45 @@ describe("isError", () => {
     expect(isError("x")).toBe(false);
     expect(isError(null)).toBe(false);
   });
+
+  it("Symbol.toStringTag만 위장한 객체는 false다", () => {
+    expect(isError({ [Symbol.toStringTag]: "Error" })).toBe(false);
+  });
+
+  it("태그 getter가 던져도 예외 없이 false다", () => {
+    const value = {
+      get [Symbol.toStringTag](): string {
+        throw new Error("태그 조회 실패");
+      },
+    };
+
+    expect(isError(value)).toBe(false);
+  });
+
+  it("revoked Proxy는 예외 없이 false다", () => {
+    const { proxy, revoke } = Proxy.revocable({}, {});
+    revoke();
+
+    expect(isError(proxy)).toBe(false);
+  });
+
+  it("Error.prototype을 상속한 같은 realm 객체는 true다", () => {
+    expect(isError(Object.create(Error.prototype))).toBe(true);
+  });
+
+  it("Error.prototype을 상속한 다른 realm 객체는 false다", () => {
+    const foreign: unknown = runInNewContext("Object.create(Error.prototype)");
+
+    expect(isError(foreign)).toBe(false);
+  });
+
+  it("Symbol.toStringTag를 직접 정의한 다른 realm의 Error는 false다", () => {
+    const foreign: unknown = runInNewContext(
+      "Object.defineProperty(new Error('x'), Symbol.toStringTag, { value: 'Custom' })",
+    );
+
+    expect(isError(foreign)).toBe(false);
+  });
 });
 
 describe("invariant", () => {

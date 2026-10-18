@@ -22,6 +22,7 @@ function safeJson(value: unknown): string | undefined {
  * 임의의 throw 값을 `Error`로 바꾼다. 예외를 던지지 않는다.
  *
  * - `isError`가 `true`이면 그대로 돌려준다. 다른 realm(iframe 등)의 `Error`도 그대로 보존한다.
+ *   `message` 같은 필드 값은 검증하지 않는다. `Symbol.toStringTag`만 위장한 객체는 `isError`가 `false`라 새 `Error`로 감싼다.
  * - 그 외에는 새 `Error`를 만들고 원래 값을 `cause`에 담는다. `cause`는 열거되지 않는 속성이다.
  * - 메시지는 다음 순서로 정한다. `null`/`undefined`는 `'unknown'`, 문자열은 그대로, 문자열 `message` 속성이 있으면 그 값,
  *   객체는 `JSON.stringify` 결과, 그 외(또는 직렬화 실패)는 `String(err)`, 그것도 실패하면 `'unknown'`이다.

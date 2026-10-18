@@ -37,6 +37,52 @@ describe("isUint8Array", () => {
   ])("%j는 false다", (value) => {
     expect(isUint8Array(value)).toBe(false);
   });
+
+  it("다른 realm의 다른 TypedArray는 false다", () => {
+    const foreign: unknown = runInNewContext("new Uint16Array(1)");
+
+    expect(isUint8Array(foreign)).toBe(false);
+  });
+
+  it("Symbol.toStringTag만 위장한 객체는 false다", () => {
+    expect(isUint8Array({ [Symbol.toStringTag]: "Uint8Array" })).toBe(false);
+  });
+
+  it("태그를 위장한 다른 TypedArray는 false다", () => {
+    const view = Object.defineProperty(new Uint16Array(1), Symbol.toStringTag, {
+      value: "Uint8Array",
+    });
+
+    expect(Object.prototype.toString.call(view)).toBe("[object Uint8Array]");
+    expect(isUint8Array(view)).toBe(false);
+  });
+
+  it("프로토타입만 바꾼 다른 TypedArray는 false다", () => {
+    const view: unknown = Object.setPrototypeOf(
+      new Uint16Array(1),
+      Uint8Array.prototype,
+    );
+
+    expect(view instanceof Uint8Array).toBe(true);
+    expect(isUint8Array(view)).toBe(false);
+  });
+
+  it("태그 getter가 던져도 예외 없이 false다", () => {
+    const value = {
+      get [Symbol.toStringTag](): string {
+        throw new Error("태그 조회 실패");
+      },
+    };
+
+    expect(isUint8Array(value)).toBe(false);
+  });
+
+  it("revoked Proxy는 예외 없이 false다", () => {
+    const { proxy, revoke } = Proxy.revocable({}, {});
+    revoke();
+
+    expect(isUint8Array(proxy)).toBe(false);
+  });
 });
 
 describe("toUint8Array", () => {

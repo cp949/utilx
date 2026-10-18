@@ -16,6 +16,16 @@
   - cleanup은 `removeEventListener`에 `{ capture }` 객체를 넘긴다. 전에는 등록에 쓴 옵션 객체를 그대로 넘겼다.
   - Node `EventTarget`은 `removeEventListener`의 boolean `true`를 capture로 보지 않는다(Node 24.20.0에서 확인). 그래서 전에는 옵션 `true`로 등록한 리스너를 Node에서 해제하지 못했다. 이 경우도 함께 고쳐진다.
 - `swapItems`: 길이를 더하면 부동소수 반올림으로 정수가 되는 음수 소수 인덱스(예: 길이 3에서 `-0.9999999999999999`)를 정수로 보고 항목을 바꾸던 문제를 고쳤다. 이제 정수가 아닌 인덱스는 길이를 더하기 전에 거른다.
+- `isUint8Array`: `Symbol.toStringTag`만 위장한 객체와 태그를 위장한 `Uint16Array` 같은 다른 TypedArray를 `true`로 판정하던 문제를 고쳤다. 이제 TypedArray 내부 슬롯(`%TypedArray%.prototype[Symbol.toStringTag]` getter)으로 판별한다.
+  - 진짜 `Uint8Array`, 다른 realm의 `Uint8Array`, `Buffer`는 계속 `true`다.
+  - `Object.setPrototypeOf(new Uint16Array(1), Uint8Array.prototype)`처럼 프로토타입만 바꾼 다른 TypedArray는 전에 `instanceof`로 `true`였고, 이제 `false`다.
+  - 전에 throwing getter와 revoked Proxy 입력에서 던지던 예외가 사라지고 `false`를 돌려준다.
+- `isError`: `Symbol.toStringTag`만 `"Error"`로 위장한 객체를 `true`로 판정하던 문제를 고쳤다. 다른 realm 객체는 `[object Error]` 태그에 더해 `Symbol.toStringTag` 속성이 없어야 `true`다.
+  - 같은 realm의 `Error`와 다른 realm의 진짜 `Error`는 계속 `true`다. `Symbol.toStringTag`를 직접 정의한 다른 realm의 `Error`는 이제 `false`다.
+  - 전에 throwing getter와 revoked Proxy 입력에서 던지던 예외가 사라지고 `false`를 돌려준다.
+  - 의도적으로 만든 Proxy는 여전히 걸러내지 못한다. 모든 임의 객체를 안전하게 판별한다는 보장은 없다.
+- `toError`: 위장 객체가 `isError`를 통과해 `message`가 `undefined`인 채 그대로 반환되던 문제는 `isError` 수정으로 해결된다. 위장 객체는 이제 새 `Error`로 감싸고 원본을 `cause`에 담는다.
+  - `isError`가 `true`인 값은 전과 같이 같은 인스턴스를 돌려준다. `message` 등 필드 값은 검증하지 않는다.
 
 ## 2.1.0
 

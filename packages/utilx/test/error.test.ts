@@ -72,6 +72,33 @@ describe("toError", () => {
     expect(toError(foreign)).toBe(foreign);
   });
 
+  it("Symbol.toStringTag만 위장한 객체는 새 Error로 감싼다", () => {
+    const value = { [Symbol.toStringTag]: "Error", message: "위장" };
+
+    const error = toError(value);
+    expect(error).not.toBe(value);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe("위장");
+    expect(error.cause).toBe(value);
+  });
+
+  it("message가 문자열이 아닌 진짜 Error도 같은 인스턴스를 돌려준다", () => {
+    const error = new Error("원래");
+    (error as { message: unknown }).message = undefined;
+
+    expect(toError(error)).toBe(error);
+    expect(toError(error).message).toBeUndefined();
+  });
+
+  it("revoked Proxy는 예외 없이 새 Error로 감싼다", () => {
+    const { proxy, revoke } = Proxy.revocable({}, {});
+    revoke();
+
+    const error = toError(proxy);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.cause).toBe(proxy);
+  });
+
   it("태그 getter가 던져도 문자열 message를 보존한다", () => {
     const value = {
       message: "원래 메시지",

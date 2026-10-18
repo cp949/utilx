@@ -189,7 +189,7 @@ isFunction(async () => 1); // true
 
 - `false`일 때 타입이 틀리게 좁혀지지 않는 정확한 가드만 둔다. 그래서 `NaN`을 거르는 `isNumber`는 없다. `isNumber`는 `typeof value === "number"`이고 `NaN`도 `true`다.
 - `isPlainObject`는 객체 리터럴과 `Object.create(null)`만 `true`다. 배열, `Map`, `Date`, 클래스 인스턴스는 `false`다. 다른 realm(iframe)의 평범한 객체는 `true`다.
-- `isError`는 다른 realm의 `Error`도 `true`다.
+- `isError`는 다른 realm의 `Error`도 `true`다. `Symbol.toStringTag`만 위장한 객체는 `false`이고, 판별 중 예외가 나도 `false`다. 의도적으로 만든 Proxy는 걸러내지 못한다.
 - 이 외 가드(`isDate`, `isEmail`, `isElement` 등)는 두지 않는다. `instanceof`나 `typeof` 한 줄로 충분한 것은 만들지 않는다.
 
 ```ts
@@ -217,7 +217,7 @@ error.cause === failure; // true
 
 - 둘 다 예외를 던지지 않는다.
 - `extractErrorMessage(err, fallback = 'unknown')`는 `null`/`undefined`이면 `fallback`, 문자열이면 그대로, 문자열 `message` 속성이 있는 객체(`Error`가 아니어도)이면 그 값, 그 외에는 `String(err)`다. `message` getter나 `String()` 변환이 예외를 던지면 `fallback`이다.
-- `toError`는 `isError`가 `true`이면 그대로 돌려준다. 다른 realm(iframe)의 `Error`도 보존한다. 그 외에는 새 `Error`를 만들고 원래 값을 열거되지 않는 `cause` 속성에 담는다. 메시지는 `null`/`undefined`이면 `'unknown'`, 문자열 `message`가 있으면 그 값, 객체이면 `JSON.stringify` 결과, 나머지는 `String(err)`다. 모두 실패하면 `'unknown'`이다.
+- `toError`는 `isError`가 `true`이면 그대로 돌려준다. 다른 realm(iframe)의 `Error`도 보존한다. `message` 같은 필드 값은 검증하지 않는다. 그 외에는 새 `Error`를 만들고 원래 값을 열거되지 않는 `cause` 속성에 담는다. 메시지는 `null`/`undefined`이면 `'unknown'`, 문자열 `message`가 있으면 그 값, 객체이면 `JSON.stringify` 결과, 나머지는 `String(err)`다. 모두 실패하면 `'unknown'`이다.
 - 소스의 `lib`이 ES2019라서 `cause`는 `Error.cause` 생성자 옵션이 아니라 속성 대입으로 넣는다. 반환 타입은 `Error & { cause?: unknown }`다.
 - 사용자에게 보여 주는 다국어 메시지를 만드는 함수가 아니다. 로그와 대체 메시지용이다.
 
