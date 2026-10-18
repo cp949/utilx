@@ -501,7 +501,18 @@ pnpm verify
 | `pnpm test:gates`      | 위 게이트와 `baseline.json` 검증의 허용·금지 fixture 검사. 게이트가 위반을 실제로 잡는지 확인                                                                        |
 | `pnpm check-types`     | 소스와 테스트의 타입 검사                                                                                                                                            |
 | `pnpm check-types:e2e` | 브라우저 검증 코드(`e2e/`, `playwright.config.ts`)의 타입 검사                                                                                                       |
-| `pnpm test`            | 단위 테스트                                                                                                                                                          |
+| `pnpm test`            | 단위 테스트와 성질 검사(`test/property`). 성질 검사는 작은 입력 공간을 전수 열거하며 난수를 쓰지 않는다                                                              |
+
+### 큰 탐색
+
+`pnpm verify`는 임의 입력 탐색을 실행하지 않는다. `pnpm test:explore`가 `fast-check`로 `test/explore`의 성질을 임의 입력에 대해 검사한다. 대상은 `moveItem`·`rotateLeft`·`rotateRight`·`swapItems`, `isDeepEqual`, `DisposableScope`, base64·hex·`toUint8Array`다.
+
+| 환경 변수      | 기본값          | 의미                                              |
+| -------------- | --------------- | ------------------------------------------------- |
+| `EXPLORE_RUNS` | `1000`          | 성질마다 실행하는 입력 수                         |
+| `EXPLORE_SEED` | 실행마다 무작위 | 시작 시 출력한다. 지정하면 같은 입력열을 재현한다 |
+
+실패하면 seed와 축소된 반례가 출력된다. 같은 입력은 `EXPLORE_SEED=<seed> EXPLORE_RUNS=<runs> pnpm test:explore`로 다시 만든다. 확정한 반례는 `test/`의 단건 회귀 테스트로 옮긴다.
 
 ### 브라우저 검증
 

@@ -50,6 +50,7 @@
     "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc",
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:explore": "vitest run -c vitest.explore.config.ts"
   }
 }
