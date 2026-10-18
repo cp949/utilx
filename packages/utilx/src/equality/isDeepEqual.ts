@@ -6,7 +6,7 @@ const tagOf = (value: object): string => Object.prototype.toString.call(value);
 function isDeepEqualInternal(
   a: unknown,
   b: unknown,
-  comparing: Map<object, object>,
+  comparing: Map<object, Set<object>>,
 ): boolean {
   if (Object.is(a, b)) return true;
   if (
@@ -18,9 +18,17 @@ function isDeepEqualInternal(
     return false;
   }
 
-  // 순환 참조: 이미 비교 중인 쌍을 다시 만나면 지금까지 다르지 않았으므로 같다고 본다.
-  if (comparing.get(a) === b) return true;
-  comparing.set(a, b);
+  // 순환 참조: 이미 만난 쌍을 다시 만나면 지금까지 다르지 않았으므로 같다고 본다.
+  // 왼쪽 객체마다 여러 상대를 기록해야 한다. 하나만 기록하면 길이가 다른 순환에서 덮어써져 끝나지 않는다.
+  // 쌍은 호출이 끝날 때까지 지우지 않는다. 다르다는 결과는 바로 최상위까지 반환되므로 결과가 틀어지지 않는다.
+  let partners = comparing.get(a);
+  if (partners === undefined) {
+    partners = new Set();
+    comparing.set(a, partners);
+  } else if (partners.has(b)) {
+    return true;
+  }
+  partners.add(b);
 
   if (Array.isArray(a) || Array.isArray(b)) {
     if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
@@ -79,7 +87,7 @@ function isDeepEqualInternal(
 
 /**
  * 중첩된 배열, 평범한 객체, `Date`, `RegExp`, `Map`(값은 깊게 비교)을 재귀적으로 비교한다.
- * 순환 참조도 처리한다. `Set`의 요소는 깊게 비교하지 않고 `SameValueZero`로 비교한다.
+ * 순환 참조도 처리한다. 순환 길이가 달라도 펼친 값이 같으면 같다고 본다. `Set`의 요소는 깊게 비교하지 않고 `SameValueZero`로 비교한다.
  *
  * @example
  * isDeepEqual({ a: [1, { b: 2 }] }, { a: [1, { b: 2 }] }); // true

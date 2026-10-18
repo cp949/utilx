@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### 수정
+
+- `isDeepEqual`: 서로 다른 길이의 순환 구조를 비교할 때 `RangeError: Maximum call stack size exceeded`를 던지던 문제를 고쳤다. 비교한 객체 쌍을 덮어쓰지 않고 모두 기록한다.
+  - 전에 예외를 던지던 입력은 이제 `boolean`을 돌려준다. 순환 길이가 달라도 펼친 값이 같으면 `true`, 순환 안의 값이 다르면 `false`다.
+  - 예외를 던지지 않던 입력의 결과는 바뀌지 않는다. 공유 참조와 복제 객체를 같게 보는 규칙도 그대로다.
+
 ## 2.1.0
 
 ### 추가

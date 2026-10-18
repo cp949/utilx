@@ -150,6 +150,76 @@ describe("isDeepEqual", () => {
     expect(isDeepEqual(a, c)).toBe(false);
   });
 
+  describe("서로 다른 길이의 순환", () => {
+    type Node = { value: number; next?: Node };
+
+    // values 순서대로 노드를 만들고 마지막 노드가 첫 노드를 가리키게 한다.
+    const makeCycle = (...values: number[]): Node => {
+      const nodes = values.map((value): Node => ({ value }));
+      nodes.forEach((node, index) => {
+        node.next = nodes[(index + 1) % nodes.length];
+      });
+      return nodes[0] as Node;
+    };
+
+    // 양방향 결과가 같아야 한다. 기록이 왼쪽 객체 기준이라 방향마다 실행 경로가 다르다.
+    const expectBoth = (a: unknown, b: unknown, expected: boolean) => {
+      expect(isDeepEqual(a, b)).toBe(expected);
+      expect(isDeepEqual(b, a)).toBe(expected);
+    };
+
+    it("1·2·3노드 순환을 교차 비교해도 종료하고 펼친 값이 같으면 같다", () => {
+      const cycles = [makeCycle(1), makeCycle(1, 1), makeCycle(1, 1, 1)];
+
+      for (const a of cycles) {
+        for (const b of cycles) {
+          expectBoth(a, b, true);
+        }
+      }
+    });
+
+    it("주기가 배수 관계여도 펼친 값이 같으면 같다", () => {
+      expectBoth(makeCycle(1, 2), makeCycle(1, 2, 1, 2), true);
+    });
+
+    it("순환 안의 값이 다르면 다르다", () => {
+      expectBoth(makeCycle(1), makeCycle(1, 2), false);
+      expectBoth(makeCycle(1, 1), makeCycle(1, 2), false);
+      expectBoth(makeCycle(1, 1, 1), makeCycle(1, 1, 2), false);
+      expectBoth(makeCycle(1, 2), makeCycle(1, 2, 1, 3), false);
+    });
+
+    it("배열의 순환도 종료한다", () => {
+      const self: unknown[] = [1];
+      self.push(self);
+      const inner: unknown[] = [1];
+      const outer: unknown[] = [1, inner];
+      inner.push(outer);
+      const differentOuter: unknown[] = [2];
+      const different: unknown[] = [1, differentOuter];
+      differentOuter.push(different);
+
+      expectBoth(self, outer, true);
+      expectBoth(self, different, false);
+    });
+
+    it("Map 값의 순환도 종료한다", () => {
+      const self = new Map<string, unknown>([["v", 1]]);
+      self.set("next", self);
+      const first = new Map<string, unknown>([["v", 1]]);
+      const second = new Map<string, unknown>([["v", 1]]);
+      first.set("next", second);
+      second.set("next", first);
+      const differentFirst = new Map<string, unknown>([["v", 1]]);
+      const differentSecond = new Map<string, unknown>([["v", 2]]);
+      differentFirst.set("next", differentSecond);
+      differentSecond.set("next", differentFirst);
+
+      expectBoth(self, first, true);
+      expectBoth(self, differentFirst, false);
+    });
+  });
+
   it("같은 객체를 두 번 참조하는 구조도 비교한다", () => {
     const shared = { x: 1 };
 

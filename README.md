@@ -92,7 +92,7 @@ isDeepEqual(new Date(1), new Date(2)); // false
 ```
 
 - 값은 `Object.is`로 비교한다. `NaN`끼리는 같고 `+0`과 `-0`은 다르다.
-- 배열, 평범한 객체는 요소와 키를 비교한다. `isDeepEqual`은 `Date`(시각), `RegExp`, `Map`(값은 깊게), `Set`(요소는 `SameValueZero`)도 비교하고 순환 참조를 처리한다.
+- 배열, 평범한 객체는 요소와 키를 비교한다. `isDeepEqual`은 `Date`(시각), `RegExp`, `Map`(값은 깊게), `Set`(요소는 `SameValueZero`)도 비교하고 순환 참조를 처리한다. 순환 길이가 달라도 펼친 값이 같으면 같다고 본다.
 - 확신할 수 없으면 다르다고 판정한다. 같은 참조가 아닌 클래스 인스턴스, 함수, TypedArray는 다르다.
 - 심볼 키와 프로토타입에서 상속한 키는 비교하지 않는다.
 
