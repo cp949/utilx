@@ -526,6 +526,21 @@ pnpm verify
 
 Chrome 75는 실행하지 않는다. Playwright가 Chrome 82 이상을 요구하므로 Chrome 83이 실행 가능한 가장 낮은 버전이다. 하한(75)은 `check:escompat`의 정적 검사로만 확인한다. 시나리오, 실행 조건 기록, 수동 시나리오는 [docs/browser-verification.md](https://github.com/cp949/utilx/blob/main/docs/browser-verification.md)에 있다.
 
+### 배포
+
+`main` 브랜치의 루트에서 실행한다. 설정은 `.release-it.json`에 있다.
+
+```sh
+GITHUB_TOKEN=$(gh auth token) pnpm release-it
+```
+
+1. `npm whoami`로 npm 인증을 확인하고 `pnpm verify`를 실행한다.
+2. 새 버전을 고르면 `packages/utilx/package.json`의 version을 올리고, `CHANGELOG.md`의 `## [Unreleased]`를 `## [<version>] - <날짜>`로 바꾼다. 위에는 빈 `## [Unreleased]`를 다시 만든다.
+3. `packages/utilx`에서 `pnpm publish`로 npm에 배포한다. 같은 버전이 이미 있으면 실패하고 커밋·태그를 만들지 않는다.
+4. `chore: v<version> 배포` 커밋, `v<version>` 태그를 만들어 push하고 GitHub Release를 만든다. 본문은 CHANGELOG의 해당 버전 항목이다.
+
+배포 전에 `## [Unreleased]` 아래에 변경 내역을 적는다. 비어 있으면 버전을 고르기 전에 실패한다. `GITHUB_TOKEN`이 없으면 GitHub Release는 웹 화면 링크로 대신한다. `pnpm release-it --dry-run`은 hook과 파일 변경 없이 절차만 출력한다.
+
 ### 소스 파일 규칙
 
 - 공개 함수와 클래스는 파일 하나에 하나씩 두고, 파일명은 이름과 같다(`trim.ts`, `ObjectUrlRegistry.ts`).

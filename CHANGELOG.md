@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
 
 ### 수정
 
@@ -42,7 +42,7 @@
 - `isDeepEqual`: `Map`의 키를 `SameValueZero`로 찾고 값만 재귀 비교한다는 계약을 JSDoc과 README에 명시했다. 객체 키는 같은 참조여야 한다. 동작은 바뀌지 않았다.
 - 패키지 README를 루트 README와 같은 내용으로 맞추고 `pnpm check:readme`(`pnpm verify`에 포함)로 일치와 상대 링크 부재를 검사한다. 루트 README가 원본이며 `pnpm sync:readme`로 동기화한다. 루트 README의 `docs/` 상대 링크는 npm에서 깨지므로 GitHub 절대 URL로 바꿨다.
 
-## 2.1.0
+## [2.1.0]
 
 ### 추가
 
@@ -65,7 +65,7 @@
 
 - 공개 함수와 클래스를 이름에 맞는 개별 소스 파일로 분리했다. 공개 import 진입점은 `@cp949/utilx`로 유지한다.
 
-## 2.0.0
+## [2.0.0]
 
 패키지를 재구성했다. 1.x의 `genId`, `genUid`를 제거하고 나머지 API를 재설계하므로 메이저 버전을 올린다.
 이전 API와의 대응은 README의 "1.x에서 옮기기"를 따른다.
