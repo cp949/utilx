@@ -111,6 +111,14 @@ const forbidden = [
     ["globalThis.window", "export const r = () => globalThis.window;"],
     ["globalThis.self", "export const r = () => globalThis.self;"],
     ["globalThis?.document", "export const r = () => globalThis?.document;"],
+    [
+      "globalThis.globalThis 체인의 document",
+      "export const r = () => globalThis.globalThis.document;",
+    ],
+    [
+      "쉼표 식으로 감싼 globalThis의 document",
+      "export const r = () => (0, globalThis).document;",
+    ],
   ].map(([name, code]) => [
     `${name} 접근`,
     code,
@@ -146,6 +154,25 @@ const forbidden = [
         "const { process } = globalThis;\nexport const r = process;",
       ],
       ["globalThis 기본 매개변수", "export const r = (g = globalThis) => g;"],
+      ["globalThis 반환", "export const r = () => globalThis;"],
+      [
+        "globalThis 인자 전달",
+        "const f = (g) => g.process;\nexport const r = f(globalThis);",
+      ],
+      [
+        "globalThis를 Reflect.get에 전달",
+        'export const r = Reflect.get(globalThis, "process");',
+      ],
+      ["globalThis 배열 원소", "export const r = [globalThis][0].process;"],
+      ["globalThis 기본 export", "export default globalThis;"],
+      [
+        "globalThis.window 체인",
+        "export const r = () => globalThis.window.process;",
+      ],
+      [
+        "globalThis.globalThis 체인",
+        "export const r = () => globalThis.globalThis.process;",
+      ],
     ].map(([name, code]) => [
       `${name}(${area})`,
       code,
@@ -153,6 +180,20 @@ const forbidden = [
       "no-restricted-syntax",
     ]),
   ),
+  // web은 window, self를 식별자로 허용하므로 이 둘을 경유한 금지 전역 접근을 따로 확인한다.
+  ...[
+    ["window.process", "export const r = () => window.process;"],
+    ["self.Buffer", "export const r = () => self.Buffer;"],
+    ["window.Math.random", "export const r = () => window.Math.random();"],
+    ["window의 계산된 process", 'export const r = () => window["process"];'],
+    ["window의 동적 속성", "export const r = (k) => window[k];"],
+    ["window.self 체인", "export const r = () => window.self.process;"],
+  ].map(([name, code]) => [
+    `${name} 접근`,
+    code,
+    "web",
+    "no-restricted-syntax",
+  ]),
   [
     "Math.random 호출",
     "export const r = Math.random();",
@@ -207,11 +248,18 @@ const allowed = [
     "export const r = () => globalThis.navigator;",
     "web",
   ],
+  ["typeof globalThis", "export const r = () => typeof globalThis;", "nonWeb"],
   [
-    "web의 globalThis.window",
-    "export const r = () => globalThis.window;",
+    "globalThis라는 이름의 속성과 객체 키",
+    "export const r = (o) => o.globalThis;\nexport const k = { globalThis: 1 };",
+    "nonWeb",
+  ],
+  [
+    "web의 window.document",
+    "export const r = () => window.document.title;",
     "web",
   ],
+  ["web의 window 값 전달", "export const r = (f) => f(window);", "web"],
   ["하한 이하 API", "export const r = [1].map((v) => v + 1);", "nonWeb"],
 ];
 

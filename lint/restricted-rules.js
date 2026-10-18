@@ -3,7 +3,8 @@
  *
  * - `src/**`는 Node 전역, Chrome 75에 없는 API, `Math.random`, 외부 import를 쓰지 못한다.
  * - DOM 전역(window, document 등)은 `src/web/**`에서만 허용한다.
- * - `globalThis.<금지 전역>` 접근과 `globalThis`를 변수·구조 분해·기본값에 담는 우회도 같은 범위로 막는다.
+ * - 전역 객체(`globalThis`, `window`, `self`)를 경유한 금지 전역 접근도 같은 범위로 막는다.
+ *   `globalThis`는 속성 접근과 `typeof` 밖에서 값으로 쓰지 못한다.
  */
 
 const domMessage =
@@ -40,9 +41,33 @@ const restrictedProperties = [
   },
 ];
 
-/** `globalThis.<name>` 접근(점 표기, 문자열 리터럴 계산 표기)을 고르는 선택자. */
-const globalThisMember = (names) =>
-  `MemberExpression[object.name='globalThis']:matches([computed=false][property.name=/^(?:${names.join("|")})$/], [computed=true][property.value=/^(?:${names.join("|")})$/])`;
+/**
+ * 전역 객체를 가리키는 이름. `window`, `self`는 `web`에서만 식별자로 쓸 수 있지만,
+ * 쓸 수 있는 곳에서는 `globalThis`와 같은 우회 경로(`window.process`)가 된다.
+ */
+const globalObjects = ["globalThis", "window", "self"];
+
+/** 전역 객체의 `<name>` 속성 접근(점 표기, 문자열 리터럴 계산 표기)을 고르는 선택자. */
+const globalMember = (objects, names) => {
+  const name = `/^(?:${names.join("|")})$/`;
+  return `MemberExpression[object.name=/^(?:${objects.join("|")})$/]:matches([computed=false][property.name=${name}], [computed=true][property.value=${name}])`;
+};
+
+/**
+ * `globalThis`가 값으로 쓰이는 위치. 속성 접근의 객체, `typeof`, 타입 위치만 허용하고 나머지(인자, 반환값,
+ * 변수·구조 분해·기본값, 배열·객체 리터럴, 쉼표 식, TS 단언)는 모두 고른다. 값으로 빠져나간 전역 객체는
+ * 이름 기반 선택자로 더 추적할 수 없어서 위치를 허용 목록으로 제한한다.
+ */
+const bareGlobalThis = `Identifier[name='globalThis']:not(${[
+  "MemberExpression > Identifier.object",
+  "MemberExpression[computed=false] > Identifier.property",
+  "Property[computed=false][shorthand=false] > Identifier.key",
+  "PropertyDefinition[computed=false] > Identifier.key",
+  "MethodDefinition[computed=false] > Identifier.key",
+  "UnaryExpression[operator='typeof'] > Identifier.argument",
+  "TSTypeQuery > Identifier.exprName",
+  "TSQualifiedName > Identifier.left",
+].join(", ")})`;
 
 /**
  * 전역 식별자 제한(`no-restricted-globals`)은 `globalThis.<name>`으로 같은 전역에 접근하는 경로를 보지 못한다.
@@ -50,33 +75,42 @@ const globalThisMember = (names) =>
  */
 const globalThisCommonSyntax = [
   {
-    selector: globalThisMember([
+    selector: globalMember(globalObjects, [
       ...commonGlobals.map(({ name }) => name),
       "Math",
     ]),
-    message: `globalThis를 통해서도 ${nodeMessage}(Math.random 우회 포함)`,
+    message: `전역 객체를 통해서도 ${nodeMessage}(structuredClone, Math.random 우회 포함)`,
   },
   {
-    selector:
-      "MemberExpression[object.name='globalThis'][computed=true][property.type!='Literal']",
+    // `globalThis.globalThis.document`, `globalThis.window.process`처럼 이름 기반 선택자를 한 단계 비껴간다.
+    selector: globalMember(globalObjects, globalObjects),
     message:
-      "globalThis의 계산된 속성 접근은 금지한다(금지된 전역에 우회 접근할 수 있다)",
+      "전역 객체에서 전역 객체를 다시 꺼내지 않는다(금지된 전역에 우회 접근할 수 있다)",
   },
-  ...[
-    "VariableDeclarator[init.name='globalThis']",
-    "AssignmentExpression[right.name='globalThis']",
-    "AssignmentPattern[right.name='globalThis']",
-  ].map((selector) => ({
-    selector,
+  {
+    selector: `MemberExpression[object.name=/^(?:${globalObjects.join("|")})$/][computed=true][property.type!='Literal']`,
     message:
-      "globalThis를 변수, 구조 분해, 기본값에 담지 않는다(금지된 전역을 우회할 수 있다)",
-  })),
+      "전역 객체의 계산된 속성 접근은 금지한다(금지된 전역에 우회 접근할 수 있다)",
+  },
+  {
+    selector: bareGlobalThis,
+    message:
+      "globalThis는 `globalThis.<이름>` 접근과 typeof로만 쓴다. 값으로 넘기거나 담으면 금지된 전역을 우회할 수 있다",
+  },
 ];
 
-/** `web` 밖에서 `globalThis`를 통한 DOM 전역 접근을 막는 선택자. */
+/**
+ * `web` 밖에서 `globalThis`를 통한 DOM 전역 접근을 막는 선택자.
+ * `window`, `self`는 위의 전역 객체 재추출 선택자가 이미 모든 경로에서 막으므로 중복 보고하지 않게 뺀다.
+ */
 const globalThisDomSyntax = [
   {
-    selector: globalThisMember(domGlobals.map(({ name }) => name)),
+    selector: globalMember(
+      ["globalThis"],
+      domGlobals
+        .map(({ name }) => name)
+        .filter((name) => !globalObjects.includes(name)),
+    ),
     message: `globalThis를 통해서도 ${domMessage}`,
   },
 ];
