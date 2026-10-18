@@ -31,6 +31,25 @@ function readTarballFile(tarball, path) {
 }
 
 /**
+ * tarball을 `destination`에 풀되 최상위 `package/` 접두사는 벗긴다. 설치기를 거치지 않으므로 오프라인에서 동작한다.
+ *
+ * @param {string} tarball
+ * @param {string} destination 이미 존재하는 디렉터리
+ */
+export function extractTarball(tarball, destination) {
+  const result = run("tar", [
+    "-xzf",
+    tarball,
+    "-C",
+    destination,
+    "--strip-components=1",
+  ]);
+  if (result.status !== 0) {
+    throw new Error(`tarball을 풀지 못했다(${tarball}): ${result.stderr}`);
+  }
+}
+
+/**
  * 패키지를 `pnpm pack`해 `destination`에 tarball을 만든다. 배포 직전과 같은 파일 집합을 검증하려고 실제로 pack한다.
  *
  * @param {string} packageDir 패키지 디렉터리

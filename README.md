@@ -41,6 +41,8 @@ pnpm add @cp949/utilx
 
 DOM이 필요한 `downloadUrl`, `downloadBlob`, `downloadText`, `blobToFile`, `copyTextToClipboard`, `ObjectUrlRegistry`, `hasGetUserMedia`는 호출할 때만 `document`, `URL.createObjectURL`, `File`, `navigator`에 접근한다. import만으로는 접근하지 않으므로 서버에서 import해도 안전하다.
 
+타입 선언은 `AbortSignal`, `AddEventListenerOptions`, `Window`, `Document`, `EventTarget` 같은 DOM 타입을 참조한다. TypeScript에서 소비하려면 `lib`에 `"DOM"`이 필요하다. `skipLibCheck: true`면 오류가 가려진다. 모듈 해석은 `nodenext`와 `bundler`를 검증하며, `exports`를 읽지 못하는 `node10`은 지원하지 않는다.
+
 ### 문자열
 
 ```ts
@@ -494,7 +496,8 @@ pnpm verify
 | `pnpm build`          | `dist`를 지우고 `tsc`로 빌드                                                                                                                                         |
 | `pnpm check:escompat` | `dist`가 `baseline.json`의 Chrome 하한(75)과 ES2019 기준을 만족하는지. `dist/web` 밖의 DOM 전역과 전역 객체 경유 접근도 검사                                         |
 | `pnpm check:deps`     | 소스와 tarball의 런타임 의존성이 0인지                                                                                                                               |
-| `pnpm test:gates`     | 위 두 게이트와 `baseline.json` 검증의 허용·금지 fixture 검사. 게이트가 위반을 실제로 잡는지 확인                                                                     |
+| `pnpm check:consumer` | tarball을 임시 `node_modules`에 풀어 패키지 이름으로 소비. 파일 집합, exports, 상대 경로, DOM 없는 ESM import, TypeScript 컴파일(`nodenext`·`bundler`)               |
+| `pnpm test:gates`     | 위 게이트와 `baseline.json` 검증의 허용·금지 fixture 검사. 게이트가 위반을 실제로 잡는지 확인                                                                        |
 | `pnpm check-types`    | 소스와 테스트의 타입 검사                                                                                                                                            |
 | `pnpm test`           | 단위 테스트                                                                                                                                                          |
 
