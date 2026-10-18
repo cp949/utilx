@@ -11,7 +11,8 @@
     "test": "pnpm --filter @cp949/utilx test",
     "check:escompat": "node scripts/check-escompat.mjs",
     "check:deps": "node scripts/check-deps.mjs",
-    "verify": "pnpm lint && pnpm format:check && pnpm build && pnpm check:escompat && pnpm check:deps && pnpm check-types && pnpm test"
+    "test:gates": "node --test \"scripts/test/*.test.mjs\"",
+    "verify": "pnpm lint && pnpm format:check && pnpm build && pnpm check:escompat && pnpm check:deps && pnpm test:gates && pnpm check-types && pnpm test"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
