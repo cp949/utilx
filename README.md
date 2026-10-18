@@ -528,15 +528,15 @@ Chrome 75는 실행하지 않는다. Playwright가 Chrome 82 이상을 요구하
 
 ### 배포
 
-`main` 또는 `dev` 브랜치의 루트에서 실행한다. 설정은 `.release-it.json`에 있다.
+`main` 또는 `dev` 브랜치의 루트에서 실행한다. 루트 script가 `packages/utilx`로 이동해 release-it을 실행한다. 설정은 `packages/utilx/.release-it.json`에 있다.
 
 ```sh
 GITHUB_TOKEN=$(gh auth token) pnpm release-it
 ```
 
-1. `npm whoami`로 npm 인증을 확인하고 `pnpm verify`를 실행한다.
-2. 새 버전을 고르면 `packages/utilx/package.json`의 version을 올리고, `CHANGELOG.md`의 `## [Unreleased]`를 `## [<version>] - <날짜>`로 바꾼다. 위에는 빈 `## [Unreleased]`를 다시 만든다.
-3. `packages/utilx`에서 `pnpm publish`로 npm에 배포한다. 같은 버전이 이미 있으면 실패하고 커밋·태그를 만들지 않는다.
+1. `pnpm verify`를 실행하고 npm 인증을 확인한다.
+2. 새 버전을 고르면 `packages/utilx/package.json`의 version을 올리고, 루트 `CHANGELOG.md`의 `## [Unreleased]`를 `## [<version>] - <날짜>`로 바꾼다. 위에는 빈 `## [Unreleased]`를 다시 만든다.
+3. `pnpm publish`로 npm에 배포한다. npm이 OTP를 요구하면 입력을 묻고 다시 시도한다. 같은 버전이 이미 있으면 실패하고 커밋·태그를 만들지 않는다.
 4. `chore: v<version> 배포` 커밋, `v<version>` 태그를 만들어 push하고 GitHub Release를 만든다. 본문은 CHANGELOG의 해당 버전 항목이다.
 
 배포 전에 `## [Unreleased]` 아래에 변경 내역을 적는다. 비어 있으면 버전을 고르기 전에 실패한다. `GITHUB_TOKEN`이 없으면 GitHub Release는 웹 화면 링크로 대신한다. `pnpm release-it --dry-run`은 hook과 파일 변경 없이 절차만 출력한다.

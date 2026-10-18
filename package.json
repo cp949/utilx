@@ -21,12 +21,12 @@
     "test:gates": "node --test \"scripts/test/*.test.mjs\"",
     "test:browser": "pnpm build && node scripts/run-browser.mjs chromium-latest",
     "test:browser:chrome83": "pnpm build && node scripts/run-browser.mjs chrome83",
-    "verify": "pnpm lint && pnpm format:check && pnpm build && pnpm check:escompat && pnpm check:deps && pnpm check:readme && pnpm check:consumer && pnpm check:bundle && pnpm test:gates && pnpm check-types && pnpm check-types:e2e && pnpm test"
+    "verify": "pnpm lint && pnpm format:check && pnpm build && pnpm check:escompat && pnpm check:deps && pnpm check:readme && pnpm check:consumer && pnpm check:bundle && pnpm test:gates && pnpm check-types && pnpm check-types:e2e && pnpm test",
+    "release-it": "cd packages/utilx && release-it"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.63.0",
-    "@release-it/bumper": "8.0.1",
     "@release-it/keep-a-changelog": "8.0.1",
     "@types/node": "24.13.6",
     "esbuild": "0.28.2",
