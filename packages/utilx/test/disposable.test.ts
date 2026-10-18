@@ -220,17 +220,125 @@ describe("addEventListenerWithCleanup", () => {
     expect(listener).toHaveBeenCalledOnce();
   });
 
-  it("옵션을 등록과 해제에 같이 넘긴다", () => {
+  it.each([
+    ["{ capture: true }", { capture: true }],
+    ["{ capture: false }", { capture: false }],
+    ["true", true],
+    ["false", false],
+    ["{}", {}],
+    ["undefined", undefined],
+  ] as const)(
+    "옵션 %s로 등록해도 cleanup 뒤에는 호출되지 않는다",
+    (_, options) => {
+      const target = new EventTarget();
+      const listener = vi.fn();
+
+      const stop = addEventListenerWithCleanup(
+        target,
+        "ping",
+        listener,
+        options,
+      );
+      target.dispatchEvent(new Event("ping"));
+      stop();
+      target.dispatchEvent(new Event("ping"));
+
+      expect(listener).toHaveBeenCalledOnce();
+    },
+  );
+
+  it.each([
+    [false, true],
+    [true, false],
+  ])(
+    "등록 후 옵션 객체의 capture를 %s에서 %s로 바꿔도 cleanup이 해제한다",
+    (registered, changed) => {
+      const target = new EventTarget();
+      const listener = vi.fn();
+      const options = { capture: registered };
+
+      const stop = addEventListenerWithCleanup(
+        target,
+        "ping",
+        listener,
+        options,
+      );
+      options.capture = changed;
+      stop();
+      target.dispatchEvent(new Event("ping"));
+
+      expect(listener).not.toHaveBeenCalled();
+    },
+  );
+
+  it("cleanup을 반복 호출해도 예외 없이 해제 상태를 유지한다", () => {
+    const target = new EventTarget();
+    const listener = vi.fn();
+    const stop = addEventListenerWithCleanup(target, "ping", listener, {
+      capture: true,
+    });
+
+    stop();
+    expect(() => {
+      stop();
+      stop();
+    }).not.toThrow();
+    target.dispatchEvent(new Event("ping"));
+
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it("등록에는 원본 옵션을 그대로 넘긴다", () => {
     const target = new EventTarget();
     const add = vi.spyOn(target, "addEventListener");
-    const remove = vi.spyOn(target, "removeEventListener");
     const listener = vi.fn();
-    const options = { capture: true };
+    const options = { capture: true, once: true, passive: true };
 
-    addEventListenerWithCleanup(target, "ping", listener, options)();
+    addEventListenerWithCleanup(target, "ping", listener, options);
 
     expect(add).toHaveBeenCalledWith("ping", listener, options);
-    expect(remove).toHaveBeenCalledWith("ping", listener, options);
+  });
+
+  it("once 옵션은 한 번만 호출한다", () => {
+    const target = new EventTarget();
+    const listener = vi.fn();
+
+    addEventListenerWithCleanup(target, "ping", listener, { once: true });
+    target.dispatchEvent(new Event("ping"));
+    target.dispatchEvent(new Event("ping"));
+
+    expect(listener).toHaveBeenCalledOnce();
+  });
+
+  it("passive 옵션은 preventDefault를 무시한다", () => {
+    const target = new EventTarget();
+    const event = new Event("ping", { cancelable: true });
+
+    addEventListenerWithCleanup(
+      target,
+      "ping",
+      (e) => {
+        e.preventDefault();
+      },
+      { passive: true },
+    );
+    target.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it("signal이 abort되면 호출하지 않는다", () => {
+    const target = new EventTarget();
+    const listener = vi.fn();
+    const controller = new AbortController();
+
+    addEventListenerWithCleanup(target, "ping", listener, {
+      signal: controller.signal,
+    });
+    controller.abort();
+    target.dispatchEvent(new Event("ping"));
+
+    expect(listener).not.toHaveBeenCalled();
   });
 
   it("scope에 등록하면 dispose 때 해제된다", () => {
