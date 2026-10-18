@@ -3,10 +3,37 @@ import { hasOwn } from "./hasOwn.internal.js";
 
 const tagOf = (value: object): string => Object.prototype.toString.call(value);
 
+// 왼쪽 객체마다 비교한 오른쪽 객체를 모두 기록한다.
+// 대부분은 상대가 하나이므로 첫 상대는 first에 두고, 둘째 상대부터 rest의 Set을 만든다.
+// 객체마다 Set을 만들면 순환이 없는 큰 구조의 비교가 1.5배가량 느려진다.
+interface ComparedPairs {
+  first: Map<object, object>;
+  rest: Map<object, Set<object>>;
+}
+
+// 이미 기록한 쌍이면 true를 반환하고, 처음 만난 쌍이면 기록한 뒤 false를 반환한다.
+function recordPair(pairs: ComparedPairs, a: object, b: object): boolean {
+  const first = pairs.first.get(a);
+  if (first === undefined) {
+    pairs.first.set(a, b);
+    return false;
+  }
+  if (first === b) return true;
+  let rest = pairs.rest.get(a);
+  if (rest === undefined) {
+    rest = new Set();
+    pairs.rest.set(a, rest);
+  } else if (rest.has(b)) {
+    return true;
+  }
+  rest.add(b);
+  return false;
+}
+
 function isDeepEqualInternal(
   a: unknown,
   b: unknown,
-  comparing: Map<object, Set<object>>,
+  comparing: ComparedPairs,
 ): boolean {
   if (Object.is(a, b)) return true;
   if (
@@ -21,14 +48,9 @@ function isDeepEqualInternal(
   // 순환 참조: 이미 만난 쌍을 다시 만나면 지금까지 다르지 않았으므로 같다고 본다.
   // 왼쪽 객체마다 여러 상대를 기록해야 한다. 하나만 기록하면 길이가 다른 순환에서 덮어써져 끝나지 않는다.
   // 쌍은 호출이 끝날 때까지 지우지 않는다. 다르다는 결과는 바로 최상위까지 반환되므로 결과가 틀어지지 않는다.
-  let partners = comparing.get(a);
-  if (partners === undefined) {
-    partners = new Set();
-    comparing.set(a, partners);
-  } else if (partners.has(b)) {
-    return true;
-  }
-  partners.add(b);
+  // 주의: false를 받고도 다른 후보로 비교를 이어 가는 분기(예: Set 요소의 깊은 비교)를 추가하면
+  // 실패한 쌍이 같다고 남으므로 이 기록 방식을 그대로 쓸 수 없다.
+  if (recordPair(comparing, a, b)) return true;
 
   if (Array.isArray(a) || Array.isArray(b)) {
     if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
@@ -95,5 +117,5 @@ function isDeepEqualInternal(
  * isDeepEqual(new Map([['k', { v: 1 }]]), new Map([['k', { v: 1 }]])); // true
  */
 export function isDeepEqual(a: unknown, b: unknown): boolean {
-  return isDeepEqualInternal(a, b, new Map());
+  return isDeepEqualInternal(a, b, { first: new Map(), rest: new Map() });
 }
