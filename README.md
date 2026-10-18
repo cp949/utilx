@@ -489,17 +489,29 @@ pnpm verify
 
 `pnpm verify`는 다음을 순서대로 실행한다.
 
-| 명령                  | 검사                                                                                                                                                                 |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm lint`           | ESLint. `src/**`의 Node 전역, `Math.random`, 외부 import 금지. DOM 전역은 `src/web`에서만 허용. `globalThis`·`window`·`self` 경유 접근과 `globalThis` 값 전달도 금지 |
-| `pnpm format:check`   | prettier                                                                                                                                                             |
-| `pnpm build`          | `dist`를 지우고 `tsc`로 빌드                                                                                                                                         |
-| `pnpm check:escompat` | `dist`가 `baseline.json`의 Chrome 하한(75)과 ES2019 기준을 만족하는지. `dist/web` 밖의 DOM 전역과 전역 객체 경유 접근도 검사                                         |
-| `pnpm check:deps`     | 소스와 tarball의 런타임 의존성이 0인지                                                                                                                               |
-| `pnpm check:consumer` | tarball을 임시 `node_modules`에 풀어 패키지 이름으로 소비. 파일 집합, exports, 상대 경로, DOM 없는 ESM import, TypeScript 컴파일(`nodenext`·`bundler`)               |
-| `pnpm test:gates`     | 위 게이트와 `baseline.json` 검증의 허용·금지 fixture 검사. 게이트가 위반을 실제로 잡는지 확인                                                                        |
-| `pnpm check-types`    | 소스와 테스트의 타입 검사                                                                                                                                            |
-| `pnpm test`           | 단위 테스트                                                                                                                                                          |
+| 명령                   | 검사                                                                                                                                                                 |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm lint`            | ESLint. `src/**`의 Node 전역, `Math.random`, 외부 import 금지. DOM 전역은 `src/web`에서만 허용. `globalThis`·`window`·`self` 경유 접근과 `globalThis` 값 전달도 금지 |
+| `pnpm format:check`    | prettier                                                                                                                                                             |
+| `pnpm build`           | `dist`를 지우고 `tsc`로 빌드                                                                                                                                         |
+| `pnpm check:escompat`  | `dist`가 `baseline.json`의 Chrome 하한(75)과 ES2019 기준을 만족하는지. `dist/web` 밖의 DOM 전역과 전역 객체 경유 접근도 검사                                         |
+| `pnpm check:deps`      | 소스와 tarball의 런타임 의존성이 0인지                                                                                                                               |
+| `pnpm check:consumer`  | tarball을 임시 `node_modules`에 풀어 패키지 이름으로 소비. 파일 집합, exports, 상대 경로, DOM 없는 ESM import, TypeScript 컴파일(`nodenext`·`bundler`)               |
+| `pnpm test:gates`      | 위 게이트와 `baseline.json` 검증의 허용·금지 fixture 검사. 게이트가 위반을 실제로 잡는지 확인                                                                        |
+| `pnpm check-types`     | 소스와 테스트의 타입 검사                                                                                                                                            |
+| `pnpm check-types:e2e` | 브라우저 검증 코드(`e2e/`, `playwright.config.ts`)의 타입 검사                                                                                                       |
+| `pnpm test`            | 단위 테스트                                                                                                                                                          |
+
+### 브라우저 검증
+
+`pnpm verify`는 브라우저를 실행하지 않는다. 실제 브라우저 검증은 별도 명령이다. 두 명령 모두 `pnpm build`를 먼저 실행한다.
+
+| 명령                         | 실행 환경                                                                                       |
+| ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| `pnpm test:browser`          | Playwright가 관리하는 최신 Chromium. 브라우저가 없으면 `pnpm exec playwright install chromium`  |
+| `pnpm test:browser:chrome83` | podman 컨테이너의 Chrome 83(`docker/chrome83`). podman이 없으면 docker로 대체하지 않고 실패한다 |
+
+Chrome 75는 실행하지 않는다. Playwright가 Chrome 82 이상을 요구하므로 Chrome 83이 실행 가능한 가장 낮은 버전이다. 하한(75)은 `check:escompat`의 정적 검사로만 확인한다. 시나리오, 실행 조건 기록, 수동 시나리오는 [docs/browser-verification.md](docs/browser-verification.md)에 있다.
 
 ### 소스 파일 규칙
 
@@ -517,4 +529,4 @@ pnpm verify
 - `package.json`의 `"sideEffects": false`를 유지한다.
 - 새 export를 추가하면 그것만 import한 번들에 다른 코드가 딸려 오지 않는지 확인한다.
 
-Chrome 하한은 `baseline.json` 한 곳에서만 선언한다. 실제 브라우저 실행 검증은 하지 않는다. `check:escompat`은 정적 검사다.
+Chrome 하한은 `baseline.json` 한 곳에서만 선언한다. `check:escompat`은 정적 검사이고, Chrome 75를 직접 실행한 검증은 없다. 최신 Chromium과 Chrome 83의 실행 검증은 [브라우저 검증](#브라우저-검증)을 따른다.
