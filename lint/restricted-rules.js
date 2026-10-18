@@ -3,6 +3,7 @@
  *
  * - `src/**`는 Node 전역, Chrome 75에 없는 API, `Math.random`, 외부 import를 쓰지 못한다.
  * - DOM 전역(window, document 등)은 `src/web/**`에서만 허용한다.
+ * - `globalThis.<금지 전역>` 접근과 `globalThis`를 변수·구조 분해·기본값에 담는 우회도 같은 범위로 막는다.
  */
 
 const domMessage =
@@ -39,6 +40,47 @@ const restrictedProperties = [
   },
 ];
 
+/** `globalThis.<name>` 접근(점 표기, 문자열 리터럴 계산 표기)을 고르는 선택자. */
+const globalThisMember = (names) =>
+  `MemberExpression[object.name='globalThis']:matches([computed=false][property.name=/^(?:${names.join("|")})$/], [computed=true][property.value=/^(?:${names.join("|")})$/])`;
+
+/**
+ * 전역 식별자 제한(`no-restricted-globals`)은 `globalThis.<name>`으로 같은 전역에 접근하는 경로를 보지 못한다.
+ * `Math`는 식별자 제한 대상이 아니지만 `globalThis.Math.random()`으로 우회할 수 있어 함께 막는다.
+ */
+const globalThisCommonSyntax = [
+  {
+    selector: globalThisMember([
+      ...commonGlobals.map(({ name }) => name),
+      "Math",
+    ]),
+    message: `globalThis를 통해서도 ${nodeMessage}(Math.random 우회 포함)`,
+  },
+  {
+    selector:
+      "MemberExpression[object.name='globalThis'][computed=true][property.type!='Literal']",
+    message:
+      "globalThis의 계산된 속성 접근은 금지한다(금지된 전역에 우회 접근할 수 있다)",
+  },
+  ...[
+    "VariableDeclarator[init.name='globalThis']",
+    "AssignmentExpression[right.name='globalThis']",
+    "AssignmentPattern[right.name='globalThis']",
+  ].map((selector) => ({
+    selector,
+    message:
+      "globalThis를 변수, 구조 분해, 기본값에 담지 않는다(금지된 전역을 우회할 수 있다)",
+  })),
+];
+
+/** `web` 밖에서 `globalThis`를 통한 DOM 전역 접근을 막는 선택자. */
+const globalThisDomSyntax = [
+  {
+    selector: globalThisMember(domGlobals.map(({ name }) => name)),
+    message: `globalThis를 통해서도 ${domMessage}`,
+  },
+];
+
 /** `Math`를 통해 random에 우회 접근하는 형태와 계산된 동적 import를 막는 선택자. */
 const restrictedSyntax = [
   {
@@ -61,6 +103,7 @@ const restrictedSyntax = [
     selector: "ImportExpression[source.value=/^[^./]/]",
     message: "외부 패키지의 동적 import는 금지한다(런타임 의존성 0)",
   },
+  ...globalThisCommonSyntax,
 ];
 
 /** 상대 경로가 아닌 모든 import(패키지, `node:*`)를 막아 런타임 의존성 0을 소스에서 강제한다. */
@@ -84,16 +127,21 @@ const restrictedImports = [
 export const restrictedRules = {
   "no-restricted-globals": ["error", ...commonGlobals, ...domGlobals],
   "no-restricted-properties": ["error", ...restrictedProperties],
-  "no-restricted-syntax": ["error", ...restrictedSyntax],
+  "no-restricted-syntax": [
+    "error",
+    ...restrictedSyntax,
+    ...globalThisDomSyntax,
+  ],
   "no-restricted-imports": restrictedImports,
 };
 
 /**
- * `web` subpath에 적용하는 규칙. DOM 전역만 풀고 나머지는 같다.
+ * `web` subpath에 적용하는 규칙. DOM 전역과 `globalThis`의 DOM 접근만 풀고 나머지는 같다.
  *
  * @type {import("eslint").Linter.RulesRecord}
  */
 export const webRestrictedRules = {
   ...restrictedRules,
   "no-restricted-globals": ["error", ...commonGlobals],
+  "no-restricted-syntax": ["error", ...restrictedSyntax],
 };

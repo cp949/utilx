@@ -95,6 +95,64 @@ const forbidden = [
     "nonWeb",
     "es-x/no-object-hasown",
   ],
+  ...[
+    [
+      "globalThis.document",
+      "export const r = () => globalThis.document.title;",
+    ],
+    [
+      "globalThis의 계산된 document",
+      'export const r = () => globalThis["document"].title;',
+    ],
+    [
+      "globalThis.navigator",
+      "export const r = () => globalThis.navigator.userAgent;",
+    ],
+    ["globalThis.window", "export const r = () => globalThis.window;"],
+    ["globalThis.self", "export const r = () => globalThis.self;"],
+    ["globalThis?.document", "export const r = () => globalThis?.document;"],
+  ].map(([name, code]) => [
+    `${name} 접근`,
+    code,
+    "nonWeb",
+    "no-restricted-syntax",
+  ]),
+  ...["nonWeb", "web"].flatMap((area) =>
+    [
+      ["globalThis.Buffer", "export const r = () => globalThis.Buffer;"],
+      ["globalThis.process", "export const r = () => globalThis.process;"],
+      ["globalThis.require", "export const r = () => globalThis.require;"],
+      [
+        "globalThis.structuredClone",
+        "export const r = (v) => globalThis.structuredClone(v);",
+      ],
+      [
+        "globalThis의 계산된 process",
+        'export const r = () => globalThis["process"];',
+      ],
+      [
+        "globalThis.Math.random",
+        "export const r = () => globalThis.Math.random();",
+      ],
+      ["globalThis의 동적 속성", "export const r = (k) => globalThis[k];"],
+      [
+        "globalThis의 템플릿 속성",
+        "export const r = () => globalThis[`process`];",
+      ],
+      ["globalThis 별칭", "const g = globalThis;\nexport const r = g.process;"],
+      ["globalThis 재할당", "let g;\ng = globalThis;\nexport const r = g;"],
+      [
+        "globalThis 구조 분해",
+        "const { process } = globalThis;\nexport const r = process;",
+      ],
+      ["globalThis 기본 매개변수", "export const r = (g = globalThis) => g;"],
+    ].map(([name, code]) => [
+      `${name}(${area})`,
+      code,
+      area,
+      "no-restricted-syntax",
+    ]),
+  ),
   [
     "Math.random 호출",
     "export const r = Math.random();",
@@ -129,7 +187,31 @@ const allowed = [
     "export const r = () => window.navigator.userAgent;",
     "web",
   ],
-  ["하한 이하 globalThis(71)", "export const r = globalThis;", "nonWeb"],
+  [
+    "하한 이하 globalThis(71)",
+    "export const r = () => globalThis.Array;",
+    "nonWeb",
+  ],
+  [
+    "globalThis의 허용된 전역",
+    "export const r = () => globalThis.Promise;",
+    "web",
+  ],
+  [
+    "web의 globalThis.document",
+    "export const r = () => globalThis.document.title;",
+    "web",
+  ],
+  [
+    "web의 globalThis.navigator",
+    "export const r = () => globalThis.navigator;",
+    "web",
+  ],
+  [
+    "web의 globalThis.window",
+    "export const r = () => globalThis.window;",
+    "web",
+  ],
   ["하한 이하 API", "export const r = [1].map((v) => v + 1);", "nonWeb"],
 ];
 

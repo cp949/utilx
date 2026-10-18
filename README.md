@@ -487,16 +487,16 @@ pnpm verify
 
 `pnpm verify`는 다음을 순서대로 실행한다.
 
-| 명령                  | 검사                                                                                                   |
-| --------------------- | ------------------------------------------------------------------------------------------------------ |
-| `pnpm lint`           | ESLint. `src/**`의 Node 전역, `Math.random`, 외부 import 금지. DOM 전역은 `src/web`에서만 허용         |
-| `pnpm format:check`   | prettier                                                                                               |
-| `pnpm build`          | `dist`를 지우고 `tsc`로 빌드                                                                           |
-| `pnpm check:escompat` | `dist`가 `baseline.json`의 Chrome 하한(75)과 ES2019 기준을 만족하는지. `dist/web` 밖의 DOM 전역도 검사 |
-| `pnpm check:deps`     | 소스와 tarball의 런타임 의존성이 0인지                                                                 |
-| `pnpm test:gates`     | 위 두 게이트와 `baseline.json` 검증의 허용·금지 fixture 검사. 게이트가 위반을 실제로 잡는지 확인       |
-| `pnpm check-types`    | 소스와 테스트의 타입 검사                                                                              |
-| `pnpm test`           | 단위 테스트                                                                                            |
+| 명령                  | 검사                                                                                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm lint`           | ESLint. `src/**`의 Node 전역, `Math.random`, 외부 import 금지. DOM 전역은 `src/web`에서만 허용. `globalThis` 경유 접근과 별칭도 금지 |
+| `pnpm format:check`   | prettier                                                                                                                             |
+| `pnpm build`          | `dist`를 지우고 `tsc`로 빌드                                                                                                         |
+| `pnpm check:escompat` | `dist`가 `baseline.json`의 Chrome 하한(75)과 ES2019 기준을 만족하는지. `dist/web` 밖의 DOM 전역과 `globalThis` 경유 접근도 검사      |
+| `pnpm check:deps`     | 소스와 tarball의 런타임 의존성이 0인지                                                                                               |
+| `pnpm test:gates`     | 위 두 게이트와 `baseline.json` 검증의 허용·금지 fixture 검사. 게이트가 위반을 실제로 잡는지 확인                                     |
+| `pnpm check-types`    | 소스와 테스트의 타입 검사                                                                                                            |
+| `pnpm test`           | 단위 테스트                                                                                                                          |
 
 ### 소스 파일 규칙
 
