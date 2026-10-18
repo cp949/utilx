@@ -67,6 +67,20 @@ describe("isUint8Array", () => {
     expect(isUint8Array(view)).toBe(false);
   });
 
+  it("Uint8Array.prototype을 상속한 일반 객체는 false다", () => {
+    const value: unknown = Object.create(Uint8Array.prototype);
+
+    expect(value instanceof Uint8Array).toBe(true);
+    expect(isUint8Array(value)).toBe(false);
+  });
+
+  it("진짜 Uint8Array를 감싼 Proxy는 false다", () => {
+    const proxy = new Proxy(new Uint8Array(1), {});
+
+    expect(proxy instanceof Uint8Array).toBe(true);
+    expect(isUint8Array(proxy)).toBe(false);
+  });
+
   it("태그 getter가 던져도 예외 없이 false다", () => {
     const value = {
       get [Symbol.toStringTag](): string {
