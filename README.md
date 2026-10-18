@@ -528,7 +528,7 @@ Chrome 75는 실행하지 않는다. Playwright가 Chrome 82 이상을 요구하
 
 ### 배포
 
-`main` 브랜치의 루트에서 실행한다. 설정은 `.release-it.json`에 있다.
+`main` 또는 `dev` 브랜치의 루트에서 실행한다. 설정은 `.release-it.json`에 있다.
 
 ```sh
 GITHUB_TOKEN=$(gh auth token) pnpm release-it
