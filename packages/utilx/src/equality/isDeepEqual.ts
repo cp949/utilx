@@ -108,7 +108,8 @@ function isDeepEqualInternal(
 }
 
 /**
- * 중첩된 배열, 평범한 객체, `Date`, `RegExp`, `Map`(값은 깊게 비교)을 재귀적으로 비교한다.
+ * 중첩된 배열, 평범한 객체, `Date`, `RegExp`, `Map`을 재귀적으로 비교한다.
+ * `Map`의 키는 `SameValueZero`로 찾으므로 객체 키는 같은 참조여야 하고, 값은 깊게 비교한다.
  * 순환 참조도 처리한다. 순환 길이가 달라도 펼친 값이 같으면 같다고 본다. `Set`의 요소는 깊게 비교하지 않고 `SameValueZero`로 비교한다.
  *
  * @example

@@ -19,7 +19,8 @@ function cutAfter(text: string, index: number): number {
  * 문자열이 `length`보다 길면 가운데를 `omission`으로 줄여 앞뒤만 남긴다. 파일명이나 긴 ID를 표시할 때 쓴다.
  * 결과 길이는 `omission`을 포함해 `length` 이하이고, 앞쪽이 뒤쪽보다 하나 더 길 수 있다.
  * `omission`이 `length` 이상이면 `omission`을 `length`까지 잘라 돌려준다.
- * 이모지 같은 서로게이트 쌍은 반으로 자르지 않는다.
+ * 이모지 같은 서로게이트 쌍은 반으로 자르지 않는다. 다만 `omission`을 `length`까지 자르는 위 경우에는
+ * UTF-16 코드 유닛 기준으로 자르므로 `omission` 안의 서로게이트 쌍이 잘릴 수 있다.
  *
  * @throws {RangeError} `length`가 0 이상의 정수가 아닐 때
  *

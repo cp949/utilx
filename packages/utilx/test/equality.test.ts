@@ -105,7 +105,7 @@ describe("isDeepEqual", () => {
     expect(isDeepEqual(/a/, /b/)).toBe(false);
   });
 
-  it("Map은 키와 값을 깊게 비교한다", () => {
+  it("Map은 키를 SameValueZero로 찾고 값은 재귀 비교한다", () => {
     expect(
       isDeepEqual(new Map([["k", { v: 1 }]]), new Map([["k", { v: 1 }]])),
     ).toBe(true);
@@ -114,6 +114,29 @@ describe("isDeepEqual", () => {
     ).toBe(false);
     expect(isDeepEqual(new Map([["a", 1]]), new Map([["b", 1]]))).toBe(false);
     expect(isDeepEqual(new Map(), new Map([["a", 1]]))).toBe(false);
+  });
+
+  it("Map의 객체 키는 같은 참조여야 하고 값만 재귀 비교한다", () => {
+    const key = { id: 1 };
+    expect(
+      isDeepEqual(new Map([[key, { v: 1 }]]), new Map([[key, { v: 1 }]])),
+    ).toBe(true);
+    expect(
+      isDeepEqual(new Map([[key, { v: 1 }]]), new Map([[key, { v: 2 }]])),
+    ).toBe(false);
+    // 내용이 같아도 참조가 다른 객체 키는 다른 키다.
+    expect(
+      isDeepEqual(
+        new Map([[{ id: 1 }, { v: 1 }]]),
+        new Map([[{ id: 1 }, { v: 1 }]]),
+      ),
+    ).toBe(false);
+  });
+
+  it("Map의 키는 SameValueZero로 비교한다", () => {
+    expect(isDeepEqual(new Map([[NaN, 1]]), new Map([[NaN, 1]]))).toBe(true);
+    expect(isDeepEqual(new Map([[0, 1]]), new Map([[-0, 1]]))).toBe(true);
+    expect(isDeepEqual(new Map([[NaN, 1]]), new Map([[0, 1]]))).toBe(false);
   });
 
   it("Set은 요소를 SameValueZero로 비교한다", () => {

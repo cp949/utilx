@@ -94,7 +94,7 @@ isDeepEqual(new Date(1), new Date(2)); // false
 ```
 
 - 값은 `Object.is`로 비교한다. `NaN`끼리는 같고 `+0`과 `-0`은 다르다.
-- 배열, 평범한 객체는 요소와 키를 비교한다. `isDeepEqual`은 `Date`(시각), `RegExp`, `Map`(값은 깊게), `Set`(요소는 `SameValueZero`)도 비교하고 순환 참조를 처리한다. 순환 길이가 달라도 펼친 값이 같으면 같다고 본다.
+- 배열, 평범한 객체는 요소와 키를 비교한다. `isDeepEqual`은 `Date`(시각), `RegExp`, `Map`(키는 `SameValueZero`, 값은 깊게), `Set`(요소는 `SameValueZero`)도 비교하고 순환 참조를 처리한다. 순환 길이가 달라도 펼친 값이 같으면 같다고 본다.
 - 확신할 수 없으면 다르다고 판정한다. 같은 참조가 아닌 클래스 인스턴스, 함수, TypedArray는 다르다.
 - 심볼 키와 프로토타입에서 상속한 키는 비교하지 않는다.
 
@@ -317,7 +317,7 @@ const visible = messages.toArray(); // 오래된 순서의 새 배열
 
 - 최대 개수를 넘으면 가장 오래된 항목을 버린다. 채팅 메시지나 로그를 최근 n개만 유지하는 용도다.
 - 비어 있으면 `shift`, `peekOldest`, `peekNewest`는 `undefined`를 돌려준다. `maxSize`가 1 이상의 정수가 아니면 `RangeError`다.
-- `push`, `shift`, `peek*`는 O(1)이다. `toArray`, `clone`, 순회는 O(n)이다.
+- `push`, `shift`, `peek*`, `clear`는 O(1)이다. `setMaxSize`로 줄이면 제거하는 항목 수 k에 대해 O(k)이고, `toArray`, `clone`, 순회는 O(n)이다.
 
 ### cleanup
 
@@ -489,17 +489,30 @@ pnpm verify
 
 `pnpm verify`는 다음을 순서대로 실행한다.
 
-| 명령                  | 검사                                                                                                                                                                 |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm lint`           | ESLint. `src/**`의 Node 전역, `Math.random`, 외부 import 금지. DOM 전역은 `src/web`에서만 허용. `globalThis`·`window`·`self` 경유 접근과 `globalThis` 값 전달도 금지 |
-| `pnpm format:check`   | prettier                                                                                                                                                             |
-| `pnpm build`          | `dist`를 지우고 `tsc`로 빌드                                                                                                                                         |
-| `pnpm check:escompat` | `dist`가 `baseline.json`의 Chrome 하한(75)과 ES2019 기준을 만족하는지. `dist/web` 밖의 DOM 전역과 전역 객체 경유 접근도 검사                                         |
-| `pnpm check:deps`     | 소스와 tarball의 런타임 의존성이 0인지                                                                                                                               |
-| `pnpm check:consumer` | tarball을 임시 `node_modules`에 풀어 패키지 이름으로 소비. 파일 집합, exports, 상대 경로, DOM 없는 ESM import, TypeScript 컴파일(`nodenext`·`bundler`)               |
-| `pnpm test:gates`     | 위 게이트와 `baseline.json` 검증의 허용·금지 fixture 검사. 게이트가 위반을 실제로 잡는지 확인                                                                        |
-| `pnpm check-types`    | 소스와 테스트의 타입 검사                                                                                                                                            |
-| `pnpm test`           | 단위 테스트                                                                                                                                                          |
+| 명령                   | 검사                                                                                                                                                                 |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm lint`            | ESLint. `src/**`의 Node 전역, `Math.random`, 외부 import 금지. DOM 전역은 `src/web`에서만 허용. `globalThis`·`window`·`self` 경유 접근과 `globalThis` 값 전달도 금지 |
+| `pnpm format:check`    | prettier                                                                                                                                                             |
+| `pnpm build`           | `dist`를 지우고 `tsc`로 빌드                                                                                                                                         |
+| `pnpm check:escompat`  | `dist`가 `baseline.json`의 Chrome 하한(75)과 ES2019 기준을 만족하는지. `dist/web` 밖의 DOM 전역과 전역 객체 경유 접근도 검사                                         |
+| `pnpm check:deps`      | 소스와 tarball의 런타임 의존성이 0인지                                                                                                                               |
+| `pnpm check:readme`    | 패키지 README가 루트 README와 byte 단위로 같은지, 루트 README에 상대 링크가 없는지. 원본은 루트 README이고 `pnpm sync:readme`로 맞춘다                               |
+| `pnpm check:consumer`  | tarball을 임시 `node_modules`에 풀어 패키지 이름으로 소비. 파일 집합, exports, 상대 경로, DOM 없는 ESM import, TypeScript 컴파일(`nodenext`·`bundler`)               |
+| `pnpm test:gates`      | 위 게이트와 `baseline.json` 검증의 허용·금지 fixture 검사. 게이트가 위반을 실제로 잡는지 확인                                                                        |
+| `pnpm check-types`     | 소스와 테스트의 타입 검사                                                                                                                                            |
+| `pnpm check-types:e2e` | 브라우저 검증 코드(`e2e/`, `playwright.config.ts`)의 타입 검사                                                                                                       |
+| `pnpm test`            | 단위 테스트                                                                                                                                                          |
+
+### 브라우저 검증
+
+`pnpm verify`는 브라우저를 실행하지 않는다. 실제 브라우저 검증은 별도 명령이다. 두 명령 모두 `pnpm build`를 먼저 실행한다.
+
+| 명령                         | 실행 환경                                                                                       |
+| ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| `pnpm test:browser`          | Playwright가 관리하는 최신 Chromium. 브라우저가 없으면 `pnpm exec playwright install chromium`  |
+| `pnpm test:browser:chrome83` | podman 컨테이너의 Chrome 83(`docker/chrome83`). podman이 없으면 docker로 대체하지 않고 실패한다 |
+
+Chrome 75는 실행하지 않는다. Playwright가 Chrome 82 이상을 요구하므로 Chrome 83이 실행 가능한 가장 낮은 버전이다. 하한(75)은 `check:escompat`의 정적 검사로만 확인한다. 시나리오, 실행 조건 기록, 수동 시나리오는 [docs/browser-verification.md](https://github.com/cp949/utilx/blob/main/docs/browser-verification.md)에 있다.
 
 ### 소스 파일 규칙
 
@@ -517,4 +530,4 @@ pnpm verify
 - `package.json`의 `"sideEffects": false`를 유지한다.
 - 새 export를 추가하면 그것만 import한 번들에 다른 코드가 딸려 오지 않는지 확인한다.
 
-Chrome 하한은 `baseline.json` 한 곳에서만 선언한다. 실제 브라우저 실행 검증은 하지 않는다. `check:escompat`은 정적 검사다.
+Chrome 하한은 `baseline.json` 한 곳에서만 선언한다. `check:escompat`은 정적 검사이고, Chrome 75를 직접 실행한 검증은 없다. 최신 Chromium과 Chrome 83의 실행 검증은 [브라우저 검증](#브라우저-검증)을 따른다.

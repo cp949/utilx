@@ -35,6 +35,13 @@
   - `abort()`가 동기 예외를 던지는 구현이어도 cleanup은 모두 실행한다. 그 예외는 `DisposeError.errors`의 맨 앞에 담긴다. 규격상 abort 리스너의 예외는 `DisposeError`에 모이지 않고 전역에 보고된다.
   - 반복 `dispose()`, abort 리스너와 cleanup 안의 `dispose()` 재진입, `dispose()` 시작 뒤의 등록(대상을 즉시 정리하고 예외를 던진다)은 전과 같다.
 
+### 문서
+
+- `BoundedBuffer`: JSDoc의 "모든 연산은 O(1)"을 정정했다. `push`, `shift`, `peek*`, `clear`는 O(1), `setMaxSize`로 줄이면 제거하는 항목 수 k에 대해 O(k), `toArray`, `clone`, 반복은 O(n)이다. 구현은 바뀌지 않았다.
+- `truncateMiddle`: `omission`이 `length` 이상이면 UTF-16 코드 유닛 기준으로 잘라 서로게이트 쌍이 잘릴 수 있다는 예외를 JSDoc에 추가했다. README에는 이미 있던 내용이다. 동작은 바뀌지 않았다.
+- `isDeepEqual`: `Map`의 키를 `SameValueZero`로 찾고 값만 재귀 비교한다는 계약을 JSDoc과 README에 명시했다. 객체 키는 같은 참조여야 한다. 동작은 바뀌지 않았다.
+- 패키지 README를 루트 README와 같은 내용으로 맞추고 `pnpm check:readme`(`pnpm verify`에 포함)로 일치와 상대 링크 부재를 검사한다. 루트 README가 원본이며 `pnpm sync:readme`로 동기화한다. 루트 README의 `docs/` 상대 링크는 npm에서 깨지므로 GitHub 절대 URL로 바꿨다.
+
 ## 2.1.0
 
 ### 추가

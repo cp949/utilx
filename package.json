@@ -12,11 +12,13 @@
     "test": "pnpm --filter @cp949/utilx test",
     "check:escompat": "node scripts/check-escompat.mjs",
     "check:deps": "node scripts/check-deps.mjs",
+    "check:readme": "node scripts/sync-readme.mjs --check",
+    "sync:readme": "node scripts/sync-readme.mjs --write",
     "check:consumer": "node scripts/check-consumer.mjs",
     "test:gates": "node --test \"scripts/test/*.test.mjs\"",
     "test:browser": "pnpm build && node scripts/run-browser.mjs chromium-latest",
     "test:browser:chrome83": "pnpm build && node scripts/run-browser.mjs chrome83",
-    "verify": "pnpm lint && pnpm format:check && pnpm build && pnpm check:escompat && pnpm check:deps && pnpm check:consumer && pnpm test:gates && pnpm check-types && pnpm check-types:e2e && pnpm test"
+    "verify": "pnpm lint && pnpm format:check && pnpm build && pnpm check:escompat && pnpm check:deps && pnpm check:readme && pnpm check:consumer && pnpm test:gates && pnpm check-types && pnpm check-types:e2e && pnpm test"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

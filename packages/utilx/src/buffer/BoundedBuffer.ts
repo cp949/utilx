@@ -13,7 +13,8 @@ function assertMaxSize(maxSize: number): void {
  * 최대 `maxSize`개만 보관하고, 넘치면 가장 오래된 항목을 버리는 FIFO 버퍼다.
  * 채팅 메시지나 로그를 최근 n개만 유지하는 용도에 쓴다.
  *
- * 모든 연산은 O(1)이며 `toArray`, `clone`, 반복만 O(n)이다.
+ * `push`, `shift`, `peek*`, `clear`는 O(1)이다. `setMaxSize`로 줄이면 제거하는 항목 수 k에 대해 O(k)이고,
+ * `toArray`, `clone`, 반복은 O(n)이다.
  * 비어 있을 때 `shift`, `peekOldest`, `peekNewest`는 `undefined`를 돌려준다.
  * 값 자체가 `undefined`일 수 있다면 `size`로 구분한다.
  *
@@ -94,7 +95,7 @@ export class BoundedBuffer<T> implements Iterable<T> {
   }
 
   /**
-   * 최대 개수를 바꾼다. 줄이면 넘친 만큼 오래된 항목부터 버린다.
+   * 최대 개수를 바꾼다. 줄이면 넘친 만큼 오래된 항목부터 버리며, 버리는 항목 수 k에 대해 O(k)이다.
    *
    * @throws {RangeError} `maxSize`가 1 이상의 정수가 아닐 때
    */
