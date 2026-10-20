@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-21
+
 ### 추가
 
 - `firstNotBlank`, `firstNotEmpty`: 여러 후보 중 값이 있는 첫 문자열을 고른다.

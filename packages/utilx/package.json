@@ -1,6 +1,6 @@
 {
   "name": "@cp949/utilx",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "브라우저용 문자열, 숫자 파싱, nil 판별, 배열 수정, 오류 값, URL, 바이트 표기, 파일명, 버퍼, cleanup scope, blob, 클립보드 유틸. 런타임 의존성 0",
   "license": "MIT",
   "type": "module",
