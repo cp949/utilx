@@ -54,7 +54,9 @@ isBlank("\u3000"); // true (전각 공백)
 ```
 
 - 공백 기준은 `String.prototype.trim()`과 같다.
+- `firstNotBlank`는 인자 중 공백이 아닌 문자가 있는 첫 문자열을, `firstNotEmpty`는 길이가 1 이상인 첫 문자열을 돌려준다. 없으면 `undefined`다. `null`, `undefined`는 건너뛴다. 찾은 문자열은 앞뒤 공백을 제거하지 않고 그대로 돌려준다. `firstNotEmpty`는 공백만 있는 문자열을 비어 있지 않은 것으로 본다.
 - `isBlank`, `isNotBlank`는 타입 가드가 아니다. `false`일 때 `string`이 아닌 쪽으로 좁혀지는 오류를 피하기 위해서다. 좁힌 값이 필요하면 `trimToUndefined`를 쓴다.
+- `isVisuallyBlank`, `isNotVisuallyBlank`는 `isBlank`가 공백으로 보지 않는 제로 너비 문자(`U+200B`~`U+200D`, `U+2060`), 소프트 하이픈, 방향 표시, 변형 선택자, 한글 채움 문자(`U+3164` 등), 점자 빈칸(`U+2800`)도 공백으로 본다. `isBlank("\u200B")`는 `false`, `isVisuallyBlank("\u200B")`는 `true`다. 타입 가드가 아니다. 판별 기준은 `\p{White_Space}`, `\p{Default_Ignorable_Code_Point}`, `U+2800`이며 엔진의 Unicode 버전을 따른다.
 
 ```ts
 import {
@@ -79,6 +81,9 @@ isNumericString("1e3"); // false
 - `strlen`은 UTF-16 코드 유닛 수(`str.length`)를 돌려준다. 바이트 수나 글자 수가 아니다. `null`/`undefined`는 `0`이다.
 - `replaceAll`은 `String.prototype.replaceAll`(Chrome 85)을 쓸 수 없는 환경을 위한 함수다. 정규식과 `$&` 같은 치환 패턴을 해석하지 않는다. 빈 `search`는 아무것도 바꾸지 않는다.
 - `removePrefix`, `removeSuffix`의 `repeat` 옵션은 붙어 있는 동안 반복해서 제거한다.
+- `splitFirst`, `splitLast`는 처음 또는 마지막 구분자를 기준으로 `[앞, 뒤]`를 돌려준다. 구분자가 없거나 빈 문자열이면 `[text, undefined]`다. 구분자 끝이 `text`의 끝이면 뒤쪽은 `''`다. 구분자는 여러 글자여도 된다.
+- `substringBefore`, `substringAfter`와 `Last` 변형은 구분자 앞 또는 뒤의 부분 문자열을 돌려준다. 구분자가 없거나 빈 문자열이면 세 번째 인자 `missingDelimiterValue`를 돌려준다. 생략하면 `text` 전체이고, `''`를 넘기면 `''`다.
+- `escapeHtml`은 `& < > " '`를 엔티티로 바꾼다. HTML 텍스트와 작은따옴표나 큰따옴표로 감싼 일반 속성 값에 쓴다. 따옴표 없는 속성, 이벤트 핸들러·`style`·URL 속성, `script`·`style` 안에는 쓸 수 없다. 이미 엔티티인 `&amp;`도 다시 바꾼다. `escapeStringRegexp`는 `RegExp`에 글자 그대로 넣을 문자열을 만든다. `-`는 `\x2d`로 바꿔서 `u` 플래그와 문자 클래스 안에서도 쓸 수 있다.
 - `limitMaxLength`, `truncateMiddle`은 원문을 자를 때 서로게이트 쌍(이모지 등)을 반으로 자르지 않는다. 결과 길이는 지정한 값 이하다. 다만 `truncateMiddle`의 `omission`이 지정한 길이 이상이면 생략 표시 자체를 UTF-16 코드 유닛 기준으로 자르므로 쌍이 잘릴 수 있다. 이 경우 ASCII 생략 표시(`...` 등)를 쓴다.
 - `pascalCase`, `kebabToPascal`은 각 단어를 소문자로 만든 뒤 첫 글자만 대문자로 한다. 약어도 단어 하나로 취급해서 `API`는 `Api`가 된다. `camelCase`는 첫 단어 전체를 소문자로 만들고 나머지 단어에 같은 규칙을 적용한다. 로캘은 따르지 않는다.
 - `isNumericString`은 부호와 소수점만 허용하는 10진수 표기만 `true`다. 빈 문자열, 공백, 지수(`1e3`), 16진수, `Infinity`는 `false`다. `isDigitString`은 ASCII 숫자만 `true`다. 둘 다 타입 가드가 아니다.
@@ -126,6 +131,7 @@ parseIntegerOrUndefined("1.5"); // undefined
 - 앞뒤 공백은 무시한다. 빈 문자열과 공백뿐인 문자열은 `undefined`다. `-0`은 `0`으로 돌려준다.
 - `parseIntegerOrUndefined`의 정수 판정은 문자열이 아니라 변환된 수 값 기준이다. `'1.0'`은 `1`이다. 소수부가 반올림으로 사라지는 `'1.0000000000000001'`도 `1`이 된다. 문자열 기준으로 소수를 거르려면 `isDigitString`을 먼저 쓴다.
 - `parseIntegerOrUndefined`는 `Number.isSafeInteger`를 벗어나는 값(`'9007199254740993'`)을 `undefined`로 돌려준다. `min`, `max`가 유한한 수가 아니거나 `min > max`이면 `RangeError`다.
+- `clamp(value, min, max)`는 `value`를 `min` 이상 `max` 이하로 맞춘다. `value`가 `NaN`이면 `NaN`이다. `min`, `max`에는 `Infinity`를 쓸 수 있다. `min`이나 `max`가 `NaN`이거나 `min > max`이면 `RangeError`다. 두 값을 바꿔서 처리하지 않는다.
 
 ### nil 판별
 
@@ -139,6 +145,7 @@ const names: string[] = ["a", null, "b"].filter(isNotNil);
 
 - nil은 `null`과 `undefined`다. `0`, `''`, `false`, `NaN`은 nil이 아니다.
 - 둘 다 타입 가드다. `isNotNil`은 `NonNullable<T>`로 좁힌다.
+- `firstNotNil`은 인자 중 nil이 아닌 첫 값을 돌려준다. 없으면 `undefined`다. 반환 타입은 `NonNullable<T> | undefined`다.
 
 ### 배열
 
@@ -155,7 +162,7 @@ const checked = ["a", "b"];
 removeFirst(checked, "a", { inplace: true }); // checked는 ['b']
 ```
 
-- 배열을 바꾸는 함수는 마지막 인자로 `{ inplace: true }` 또는 `{ inplace: false }`를 반드시 받는다. 기본값은 없다. 호출부에서 원본이 바뀌는지 바로 보이게 하려는 것이다. 읽기만 하는 `lengthOf`, `isEmpty`, `isNotEmpty`, `firstItem`, `firstItems`, `lastItem`, `lastItems`, `isValidIndexRange`, `zipMap`은 받지 않는다.
+- 배열을 바꾸는 함수는 마지막 인자로 `{ inplace: true }` 또는 `{ inplace: false }`를 반드시 받는다. 기본값은 없다. 호출부에서 원본이 바뀌는지 바로 보이게 하려는 것이다. 읽기만 하는 `lengthOf`, `isEmpty`, `isNotEmpty`, `firstItem`, `firstItems`, `lastItem`, `lastItems`, `isValidIndexRange`, `zipMap`, `chunk`는 받지 않는다.
 - `inplace: true`는 `readonly` 배열을 받지 않는다. `inplace`가 `boolean` 변수이면 컴파일되지 않는다. `true`나 `false` 리터럴만 쓴다.
 - 값 비교는 `SameValueZero`다(`Array.prototype.includes`와 같다). `NaN`은 `NaN`과 같다.
 - 이름이 `Unique`나 `uniq`인 함수는 중복을 건너뛴다. 처음 나온 항목을 남기고 순서를 유지한다.
@@ -175,6 +182,7 @@ removeFirst(checked, "a", { inplace: true }); // checked는 ['b']
 - `lastItem`은 마지막 항목이다. 빈 배열이면 `undefined`다.
 - `lastItems(arr, count)`는 뒤에서부터 `count`개를 새 배열로 돌려준다. `count`가 길이보다 크면 모든 항목이고 `0`이면 빈 배열이다. 0 이상의 정수가 아니면 `RangeError`다.
 - `isValidIndexRange(arr, startIndex, endIndex)`는 두 인덱스가 정수이고 `0 <= startIndex < endIndex <= 길이`이면 `true`다. 빈 구간(`startIndex === endIndex`)은 유효하지 않다.
+- `chunk(arr, size)`는 `size`개씩 자른 새 배열의 배열을 돌려준다. 마지막 조각은 짧을 수 있고 빈 배열은 `[]`다. `size`가 1 이상의 정수가 아니면 `RangeError`다. 인자를 바꾸지 않으므로 `{ inplace }`를 받지 않는다.
 - `zipMap(arrays, mapper)`는 여러 배열의 같은 위치 항목을 튜플 하나로 묶어 `mapper`에 넘기고 결과를 모은 배열을 만든다. 길이는 가장 긴 배열을 따르고 짧은 배열의 빈 자리는 `undefined`다.
 
 ### 타입 가드
@@ -437,6 +445,7 @@ if (hasGetUserMedia()) {
 | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `trim`, `isBlank`, `isNotBlank`, `strlen`                                                        | `trim`, `isBlank`, `isNotBlank`. `strlen`은 `str.length`를 쓴다. `isBlank`는 타입 가드가 아니다                                                                                                           |
 | `trimToUndef`                                                                                    | `trimToUndefined`                                                                                                                                                                                         |
+| `firstNotBlank`, `firstNotEmpty`                                                                 | 같은 이름. 인자가 없거나 찾지 못하면 `undefined`                                                                                                                                                          |
 | `isNil`, `isNullish`, `isNotNil`                                                                 | `isNil`, `isNotNil`                                                                                                                                                                                       |
 | `array`의 `append(arr, items, uniq)`                                                             | `appendUnique(arr, items, { inplace })`. `uniq` 인자는 없고 항상 중복을 건너뛴다. 중복을 허용하는 추가는 `[...a, ...b]`를 쓴다. 키 함수로 중복을 판단하는 `uniq` 옵션은 없다                              |
 | `array`의 `prepend(arr, items, uniq)`, `$prepend`                                                | `prependUnique(arr, items, { inplace })`. `appendUnique`와 같은 규칙이다                                                                                                                                  |

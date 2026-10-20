@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### 추가
+
+- `firstNotBlank`, `firstNotEmpty`: 여러 후보 중 값이 있는 첫 문자열을 고른다.
+  - 시그니처는 `(...values: readonly (string | null | undefined)[]) => string | undefined`다.
+  - `firstNotBlank`는 `trim` 기준으로 공백뿐인 문자열을 건너뛰고, 찾은 문자열은 원본 그대로 돌려준다.
+  - `firstNotEmpty`는 길이가 0인 문자열만 건너뛴다.
+- `firstNotNil`: 인자 중 `null`도 `undefined`도 아닌 첫 값을 고른다.
+  - 시그니처는 `<T>(...values: readonly T[]) => NonNullable<T> | undefined`다.
+  - `0`, `''`, `false`, `NaN`은 nil이 아니므로 돌려준다.
+- `isVisuallyBlank`, `isNotVisuallyBlank`: 값이 없거나 화면에 보이는 글자가 없으면 blank로 판정한다.
+  - `\p{White_Space}`, `\p{Default_Ignorable_Code_Point}`, `U+2800`만으로 이루어진 문자열을 blank로 본다. 제로 너비 문자, 소프트 하이픈, 한글 채움 문자(`U+3164`)가 해당한다. `isBlank`는 이 문자들을 blank로 보지 않는다.
+  - 타입 가드가 아니다. 빈 문자열에서 `false`일 때 `string`이 `null | undefined`로 잘못 좁혀지는 것을 피하기 위해 `boolean`을 돌려준다.
+- `escapeHtml`, `escapeStringRegexp`: HTML 텍스트와 `RegExp` 패턴에 문자열을 글자 그대로 넣기 위한 이스케이프다.
+  - `escapeStringRegexp`는 sindresorhus/escape-string-regexp(MIT)와 같은 규칙이다.
+- `chunk`: 배열을 `size`개씩 잘라 새 배열의 배열로 돌려준다. `size`가 1 이상의 정수가 아니면 `RangeError`다.
+- `splitFirst`, `splitLast`: 처음 또는 마지막 구분자로 문자열을 `[앞, 뒤]`로 나눈다.
+  - 구분자는 여러 글자여도 되고 구분자 길이만큼 건너뛴다. `splitFirst('a::b', '::')`은 `['a', 'b']`다.
+  - 구분자가 없을 때 뒤쪽은 `undefined`다. 빈 구분자는 없는 것으로 본다.
+- `substringBefore`, `substringBeforeLast`, `substringAfter`, `substringAfterLast`: 구분자 앞 또는 뒤의 부분 문자열을 돌려준다.
+  - 구분자가 없거나 빈 문자열이면 `missingDelimiterValue`를 돌려준다. 생략(`undefined`)하면 `text` 전체이고, `''`를 넘기면 `''`다.
+- `clamp`: 수를 `min` 이상 `max` 이하로 맞춘다. `min > max`이면 두 값을 바꿔서 처리하고, `min`이나 `max`가 `NaN`이면 `RangeError`를 던진다.
+
 ## [2.1.1] - 2026-10-19
 
 ### 수정

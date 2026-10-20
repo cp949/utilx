@@ -7,3 +7,8 @@
 
 export * from "./parseIntegerOrUndefined.js";
 export * from "./parseNumberOrUndefined.js";
+
+/**
+ * 수를 범위 안으로 맞추는 유틸이다.
+ */
+export * from "./clamp.js";

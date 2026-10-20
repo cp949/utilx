@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isNil, isNotNil } from "../src/nullish/index.js";
+import { firstNotNil, isNil, isNotNil } from "../src/nullish/index.js";
 
 describe("isNil / isNotNil", () => {
   it.each([[null], [undefined]])("%s는 nil이다", (value) => {
@@ -30,5 +30,39 @@ describe("isNil / isNotNil", () => {
       const text: string = value;
       expect(text).toBe("x");
     }
+  });
+});
+
+describe("firstNotNil", () => {
+  it("null과 undefined가 아닌 첫 값을 돌려준다", () => {
+    expect(firstNotNil(null, undefined, "hello", "world")).toBe("hello");
+  });
+
+  it("0, 빈 문자열, false, NaN은 nil이 아니므로 돌려준다", () => {
+    expect(firstNotNil(undefined, null, 0, 1)).toBe(0);
+    expect(firstNotNil(null, "", "a")).toBe("");
+    expect(firstNotNil(null, false, true)).toBe(false);
+    expect(firstNotNil(null, NaN, 1)).toBeNaN();
+  });
+
+  it("모두 nil이면 undefined다", () => {
+    expect(firstNotNil(null, undefined, null)).toBeUndefined();
+  });
+
+  it("인자가 없으면 undefined다", () => {
+    expect(firstNotNil()).toBeUndefined();
+  });
+
+  it("값 하나만 받아도 동작한다", () => {
+    expect(firstNotNil("test")).toBe("test");
+    expect(firstNotNil(null)).toBeUndefined();
+  });
+
+  it("반환 타입에서 null과 undefined를 제외한다", () => {
+    const value: string | undefined = firstNotNil<string | null | undefined>(
+      null,
+      "a",
+    );
+    expect(value).toBe("a");
   });
 });

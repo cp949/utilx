@@ -40,3 +40,8 @@ export * from "./lengthOf.js";
  * 여러 배열을 같은 위치끼리 묶어 새 배열로 만드는 유틸이다. 인자를 바꾸지 않는다.
  */
 export * from "./zipMap.js";
+
+/**
+ * 배열을 같은 크기의 조각으로 나누는 유틸이다. 인자를 바꾸지 않는다.
+ */
+export * from "./chunk.js";

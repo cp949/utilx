@@ -32,6 +32,7 @@
     "*": {
       "modules": [
         "dist/array/appendUnique.js",
+        "dist/array/chunk.js",
         "dist/array/dedupeInPlace.internal.js",
         "dist/array/firstItem.js",
         "dist/array/firstItems.js",
@@ -91,8 +92,10 @@
         "dist/file/extensionDotIndex.internal.js",
         "dist/file/fileBaseName.js",
         "dist/file/fileExtension.js",
+        "dist/nullish/firstNotNil.js",
         "dist/nullish/isNil.js",
         "dist/nullish/isNotNil.js",
+        "dist/number/clamp.js",
         "dist/number/parseIntegerOrUndefined.js",
         "dist/number/parseNumberOrUndefined.js",
         "dist/path/isAbsolutePath.js",
@@ -101,10 +104,16 @@
         "dist/path/parsePath.js",
         "dist/string/camelCase.js",
         "dist/string/capitalize.js",
+        "dist/string/escapeHtml.js",
+        "dist/string/escapeStringRegexp.js",
+        "dist/string/firstNotBlank.js",
+        "dist/string/firstNotEmpty.js",
         "dist/string/isBlank.js",
         "dist/string/isDigitString.js",
         "dist/string/isNotBlank.js",
+        "dist/string/isNotVisuallyBlank.js",
         "dist/string/isNumericString.js",
+        "dist/string/isVisuallyBlank.js",
         "dist/string/kebabToConstant.js",
         "dist/string/kebabToPascal.js",
         "dist/string/limitMaxLength.js",
@@ -113,7 +122,13 @@
         "dist/string/removeSuffix.js",
         "dist/string/removeSurrounding.js",
         "dist/string/replaceAll.js",
+        "dist/string/splitFirst.js",
+        "dist/string/splitLast.js",
         "dist/string/strlen.js",
+        "dist/string/substringAfter.js",
+        "dist/string/substringAfterLast.js",
+        "dist/string/substringBefore.js",
+        "dist/string/substringBeforeLast.js",
         "dist/string/trim.js",
         "dist/string/trimToUndefined.js",
         "dist/string/truncate.internal.js",
@@ -138,8 +153,8 @@
         "dist/web/hasGetUserMedia.js",
         "dist/web/stopMediaStream.js"
       ],
-      "rawBytes": 21866,
-      "gzipBytes": 7530
+      "rawBytes": 23630,
+      "gzipBytes": 8021
     }
   }
 }
