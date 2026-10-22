@@ -74,7 +74,6 @@
 
 - 배열: `appendUnique`, `prependUnique`, `removeFirst`, `updateFirst`, `moveItem`, `swapItems`, `swapValues`, `rotateLeft`, `rotateRight`, `uniq`, `uniqBy`, `limitItems`, `lengthOf`, `isEmpty`, `isNotEmpty`, `firstItem`, `firstItems`, `lastItem`, `lastItems`, `isValidIndexRange`, `zipMap`, 타입 `ArrayInPlaceOptions`, `ArrayCopyOptions`
   - 배열을 바꾸는 함수는 마지막 인자 `{ inplace: true | false }`가 필수다. `true`는 전달한 배열을 직접 수정하고, `false`는 새 배열을 돌려준다. 읽기만 하는 `lengthOf`, `isEmpty`, `isNotEmpty`, `firstItem`, `firstItems`, `lastItem`, `lastItems`, `isValidIndexRange`, `zipMap`은 받지 않는다.
-  - `@ocodelib/util`의 `array` 영역에서 쓰던 `append`, `prepend`, `remove`, `replace`, `move`, `swap`, `swapValue`, `shiftRotateLeft`, `shiftRotateRight`, `uniq`, `uniqBy`, `truncate`, `size`, `last`, `lastOne`, `first`, `firstOne`, `isEmpty`, `isNotEmpty`, `isValidRange`, `zipWith`와 `$` 접두어 복사본 함수를 대체한다. 대응은 README의 "@ocodelib/util에서 옮기기"를 따른다.
 - 숫자: `parseNumberOrUndefined`, `parseIntegerOrUndefined`, 타입 `ParseIntegerOptions`
   - 10진수 표기(`isNumericString`과 같은 규칙)만 받는다. 빈 문자열은 `0`이 아니라 `undefined`다. 정수 판정은 변환된 수 값 기준이고 `Number.isSafeInteger`를 벗어나면 `undefined`다.
 - 오류 값: `extractErrorMessage`, `toError`, 타입 `ErrorWithCause`
@@ -128,4 +127,3 @@
 - 값 비교: `isShallowEqual`, `isDeepEqual`
 - 경로: `normalizePath`, `joinPath`, `isAbsolutePath`, `parsePath`
 - 비동기: `nextAnimationFrame`
-- `@ocodelib/util`에서 이어받은 함수의 대응표를 README에 추가했다.
