@@ -7,6 +7,9 @@
 - `isArraySorted`: 배열이 오름차순이면 `true`다. 같은 값이 이어지는 것은 허용한다.
   - `comparator`를 생략하면 `>`로 비교하며 `NaN`, `null`, `undefined`가 있으면 `false`다. `comparator`를 넘기면 `sort`의 비교 함수 규칙으로 인접한 항목만 비교한다.
 - `isValidIndex`: `index`가 정수이고 `0 <= index < 길이`이면 `true`다.
+- `hasTouchSupport`, `hasWebBluetooth`, `hasWebSerial`: 브라우저 기능 감지다. `window`나 `navigator`가 없는 서버에서는 `false`다.
+  - `hasTouchSupport`는 `window`에 `ontouchstart`가 있거나 `navigator.maxTouchPoints`가 `0`보다 크면 `true`다. 터치가 주 입력인지는 알려 주지 않는다.
+  - `hasWebBluetooth`, `hasWebSerial`은 `navigator`에 `bluetooth`, `serial`이 있으면 `true`다. 권한 승인이나 장치 유무는 확인하지 않는다.
 
 ### Breaking Changes
 

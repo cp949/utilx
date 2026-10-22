@@ -28,4 +28,12 @@ export * from "./blobToFile.js";
 export * from "./hasGetUserMedia.js";
 export * from "./stopMediaStream.js";
 
+/**
+ * 브라우저 기능 감지 유틸이다. 호출할 때 `window`나 `navigator`를 읽고, 없으면 `false`를 돌려준다.
+ * 권한 승인이나 장치 유무는 확인하지 않는다.
+ */
+export * from "./hasTouchSupport.js";
+export * from "./hasWebBluetooth.js";
+export * from "./hasWebSerial.js";
+
 export * from "./ObjectUrlRegistry.js";

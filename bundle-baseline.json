@@ -152,10 +152,13 @@
         "dist/web/downloadText.js",
         "dist/web/downloadUrl.js",
         "dist/web/hasGetUserMedia.js",
+        "dist/web/hasTouchSupport.js",
+        "dist/web/hasWebBluetooth.js",
+        "dist/web/hasWebSerial.js",
         "dist/web/stopMediaStream.js"
       ],
-      "rawBytes": 23774,
-      "gzipBytes": 8072
+      "rawBytes": 24120,
+      "gzipBytes": 8168
     }
   }
 }

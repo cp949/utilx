@@ -26,10 +26,11 @@
 | 다운로드·blob  | `downloadUrl`, `downloadBlob`, `downloadText`, `blobToFile`, `ObjectUrlRegistry` |
 | 클립보드       | `copyTextToClipboard`                                                            |
 | 미디어         | `stopMediaStream`, `hasGetUserMedia`                                             |
+| 기능 감지      | `hasTouchSupport`, `hasWebBluetooth`, `hasWebSerial`                             |
 
 이름은 `trim`처럼 널리 알려진 것은 그대로 쓰고, 그 밖에는 동작이 보이게 서술적으로 짓는다. 분류가 애매한 함수를 모아 두는 `misc` 같은 영역은 만들지 않는다.
 
-DOM이 필요한 `downloadUrl`, `downloadBlob`, `downloadText`, `blobToFile`, `copyTextToClipboard`, `ObjectUrlRegistry`, `hasGetUserMedia`는 호출할 때만 `document`, `URL.createObjectURL`, `File`, `navigator`에 접근한다. import만으로는 접근하지 않으므로 서버에서 import해도 안전하다.
+DOM이 필요한 `downloadUrl`, `downloadBlob`, `downloadText`, `blobToFile`, `copyTextToClipboard`, `ObjectUrlRegistry`, `hasGetUserMedia`, `hasTouchSupport`, `hasWebBluetooth`, `hasWebSerial`는 호출할 때만 `document`, `URL.createObjectURL`, `File`, `window`, `navigator`에 접근한다. import만으로는 접근하지 않으므로 서버에서 import해도 안전하다.
 
 타입 선언은 `AbortSignal`, `AddEventListenerOptions`, `Window`, `Document`, `EventTarget` 같은 DOM 타입을 참조한다. TypeScript에서 소비하려면 `lib`에 `"DOM"`이 필요하다. `skipLibCheck: true`면 오류가 가려진다. 모듈 해석은 `nodenext`와 `bundler`를 검증하며, `exports`를 읽지 못하는 `node10`은 지원하지 않는다.
 
