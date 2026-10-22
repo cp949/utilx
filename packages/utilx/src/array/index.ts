@@ -29,9 +29,10 @@ export * from "./updateFirst.js";
  */
 export * from "./firstItem.js";
 export * from "./firstItems.js";
+export * from "./isArraySorted.js";
 export * from "./isEmpty.js";
 export * from "./isNotEmpty.js";
-export * from "./isValidIndexRange.js";
+export * from "./isValidIndex.js";
 export * from "./lastItem.js";
 export * from "./lastItems.js";
 export * from "./lengthOf.js";

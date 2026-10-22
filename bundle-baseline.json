@@ -37,9 +37,10 @@
         "dist/array/firstItem.js",
         "dist/array/firstItems.js",
         "dist/array/indexOfValue.internal.js",
+        "dist/array/isArraySorted.js",
         "dist/array/isEmpty.js",
         "dist/array/isNotEmpty.js",
-        "dist/array/isValidIndexRange.js",
+        "dist/array/isValidIndex.js",
         "dist/array/lastItem.js",
         "dist/array/lastItems.js",
         "dist/array/lengthOf.js",
@@ -153,8 +154,8 @@
         "dist/web/hasGetUserMedia.js",
         "dist/web/stopMediaStream.js"
       ],
-      "rawBytes": 23630,
-      "gzipBytes": 8021
+      "rawBytes": 23774,
+      "gzipBytes": 8072
     }
   }
 }

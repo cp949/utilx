@@ -152,7 +152,7 @@ const checked = ["a", "b"];
 removeFirst(checked, "a", { inplace: true }); // checked는 ['b']
 ```
 
-- 배열을 바꾸는 함수는 마지막 인자로 `{ inplace: true }` 또는 `{ inplace: false }`를 반드시 받는다. 기본값은 없다. 호출부에서 원본이 바뀌는지 바로 보이게 하려는 것이다. 읽기만 하는 `lengthOf`, `isEmpty`, `isNotEmpty`, `firstItem`, `firstItems`, `lastItem`, `lastItems`, `isValidIndexRange`, `zipMap`, `chunk`는 받지 않는다.
+- 배열을 바꾸는 함수는 마지막 인자로 `{ inplace: true }` 또는 `{ inplace: false }`를 반드시 받는다. 기본값은 없다. 호출부에서 원본이 바뀌는지 바로 보이게 하려는 것이다. 읽기만 하는 `lengthOf`, `isArraySorted`, `isEmpty`, `isNotEmpty`, `firstItem`, `firstItems`, `lastItem`, `lastItems`, `isValidIndex`, `zipMap`, `chunk`는 받지 않는다.
 - `inplace: true`는 `readonly` 배열을 받지 않는다. `inplace`가 `boolean` 변수이면 컴파일되지 않는다. `true`나 `false` 리터럴만 쓴다.
 - 값 비교는 `SameValueZero`다(`Array.prototype.includes`와 같다). `NaN`은 `NaN`과 같다.
 - 이름이 `Unique`나 `uniq`인 함수는 중복을 건너뛴다. 처음 나온 항목을 남기고 순서를 유지한다.
@@ -171,7 +171,8 @@ removeFirst(checked, "a", { inplace: true }); // checked는 ['b']
 - `firstItems(arr, count)`는 앞에서부터 `count`개를 새 배열로 돌려준다. 규칙은 `lastItems`와 같다.
 - `lastItem`은 마지막 항목이다. 빈 배열이면 `undefined`다.
 - `lastItems(arr, count)`는 뒤에서부터 `count`개를 새 배열로 돌려준다. `count`가 길이보다 크면 모든 항목이고 `0`이면 빈 배열이다. 0 이상의 정수가 아니면 `RangeError`다.
-- `isValidIndexRange(arr, startIndex, endIndex)`는 두 인덱스가 정수이고 `0 <= startIndex < endIndex <= 길이`이면 `true`다. 빈 구간(`startIndex === endIndex`)은 유효하지 않다.
+- `isValidIndex(arr, index)`는 `index`가 정수이고 `0 <= index < 길이`이면 `true`다. 길이와 같은 `index`는 항목이 없으므로 `false`다. `null`, `undefined`는 길이 `0`으로 본다.
+- `isArraySorted(arr, comparator?)`는 오름차순이면 `true`다. 같은 값이 이어지는 것은 허용하고 빈 배열은 `true`다. `comparator`를 생략하면 `>`로 비교하며 `NaN`, `null`, `undefined`가 있으면 `false`다. `comparator`를 넘기면 `sort`의 비교 함수 규칙으로 인접한 항목만 비교한다.
 - `chunk(arr, size)`는 `size`개씩 자른 새 배열의 배열을 돌려준다. 마지막 조각은 짧을 수 있고 빈 배열은 `[]`다. `size`가 1 이상의 정수가 아니면 `RangeError`다. 인자를 바꾸지 않으므로 `{ inplace }`를 받지 않는다.
 - `zipMap(arrays, mapper)`는 여러 배열의 같은 위치 항목을 튜플 하나로 묶어 `mapper`에 넘기고 결과를 모은 배열을 만든다. 길이는 가장 긴 배열을 따르고 짧은 배열의 빈 자리는 `undefined`다.
 

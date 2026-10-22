@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### 추가
+
+- `isArraySorted`: 배열이 오름차순이면 `true`다. 같은 값이 이어지는 것은 허용한다.
+  - `comparator`를 생략하면 `>`로 비교하며 `NaN`, `null`, `undefined`가 있으면 `false`다. `comparator`를 넘기면 `sort`의 비교 함수 규칙으로 인접한 항목만 비교한다.
+- `isValidIndex`: `index`가 정수이고 `0 <= index < 길이`이면 `true`다.
+
+### Breaking Changes
+
+- `isValidIndexRange`를 제거했다. 단일 인덱스 검사는 `isValidIndex`를 쓴다.
+
 ## [2.2.0] - 2026-10-21
 
 ### 추가

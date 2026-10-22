@@ -2,9 +2,10 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   firstItem,
   firstItems,
+  isArraySorted,
   isEmpty,
   isNotEmpty,
-  isValidIndexRange,
+  isValidIndex,
   lastItem,
   lastItems,
   lengthOf,
@@ -124,32 +125,30 @@ describe("lastItems", () => {
   });
 });
 
-describe("isValidIndexRange", () => {
-  it.each([
-    [0, 3],
-    [0, 1],
-    [2, 3],
-    [1, 2],
-  ])("[%i, %i)은 유효하다", (start, end) => {
-    expect(isValidIndexRange([1, 2, 3], start, end)).toBe(true);
+describe("isValidIndex", () => {
+  it.each([0, 1, 2])("%i은 길이 3인 배열에서 유효하다", (index) => {
+    expect(isValidIndex([1, 2, 3], index)).toBe(true);
   });
 
-  it.each([
-    [-1, 2],
-    [0, 4],
-    [4, 5],
-    [2, 2],
-    [2, 1],
-    [0.5, 2],
-    [0, 2.5],
-    [Number.NaN, 2],
-  ])("[%s, %s)은 유효하지 않다", (start, end) => {
-    expect(isValidIndexRange([1, 2, 3], start, end)).toBe(false);
+  it.each([-1, 3, 4, 0.5, Number.NaN, Number.POSITIVE_INFINITY])(
+    "%s은 길이 3인 배열에서 유효하지 않다",
+    (index) => {
+      expect(isValidIndex([1, 2, 3], index)).toBe(false);
+    },
+  );
+
+  it("빈 배열에는 유효한 인덱스가 없다", () => {
+    expect(isValidIndex([], 0)).toBe(false);
   });
 
-  it("null과 undefined는 길이 0으로 보므로 유효한 구간이 없다", () => {
-    expect(isValidIndexRange(null, 0, 1)).toBe(false);
-    expect(isValidIndexRange(undefined, 0, 1)).toBe(false);
+  it("null과 undefined는 길이 0으로 보므로 유효한 인덱스가 없다", () => {
+    expect(isValidIndex(null, 0)).toBe(false);
+    expect(isValidIndex(undefined, 0)).toBe(false);
+  });
+
+  it("length가 있는 문자열도 받는다", () => {
+    expect(isValidIndex("가나다", 2)).toBe(true);
+    expect(isValidIndex("가나다", 3)).toBe(false);
   });
 });
 
@@ -250,5 +249,52 @@ describe("limitItems", () => {
       limitItems(frozen, 1, { inplace: true });
     };
     expect(typeof typeChecks).toBe("function");
+  });
+});
+
+describe("isArraySorted", () => {
+  it("오름차순이면 true다", () => {
+    expect(isArraySorted([1, 2, 3])).toBe(true);
+    expect(isArraySorted(["a", "b", "c"])).toBe(true);
+  });
+
+  it("같은 값이 이어지는 것은 허용한다", () => {
+    expect(isArraySorted([1, 1, 2, 2])).toBe(true);
+  });
+
+  it("순서가 어긋나면 false다", () => {
+    expect(isArraySorted([1, 3, 2])).toBe(false);
+    expect(isArraySorted(["b", "a"])).toBe(false);
+  });
+
+  it("빈 배열과 항목이 하나인 배열은 true다", () => {
+    expect(isArraySorted([])).toBe(true);
+    expect(isArraySorted([5])).toBe(true);
+  });
+
+  it("comparator를 생략하면 NaN, null, undefined가 있을 때 false다", () => {
+    expect(isArraySorted([1, Number.NaN])).toBe(false);
+    expect(isArraySorted([Number.NaN])).toBe(false);
+    expect(isArraySorted([null, 1])).toBe(false);
+    expect(isArraySorted([1, undefined])).toBe(false);
+  });
+
+  it("comparator를 넘기면 그 기준으로 인접한 항목만 비교한다", () => {
+    expect(isArraySorted([3, 2, 1], (a, b) => b - a)).toBe(true);
+    expect(isArraySorted([1, 2, 3], (a, b) => b - a)).toBe(false);
+    const items = [{ n: 1 }, { n: 2 }, { n: 2 }];
+    expect(isArraySorted(items, (a, b) => a.n - b.n)).toBe(true);
+  });
+
+  it("comparator를 넘기면 null 항목도 검사하지 않고 comparator에 맡긴다", () => {
+    const nullsLast = (a: number | null, b: number | null) =>
+      (a === null ? 1 : 0) - (b === null ? 1 : 0) || (a ?? 0) - (b ?? 0);
+    expect(isArraySorted([1, 2, null], nullsLast)).toBe(true);
+    expect(isArraySorted([null, 1], nullsLast)).toBe(false);
+  });
+
+  it("readonly 배열을 받는다", () => {
+    const array: readonly number[] = [1, 2];
+    expect(isArraySorted(array)).toBe(true);
   });
 });
