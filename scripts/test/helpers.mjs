@@ -8,7 +8,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createEscompatESLint } from "../check-escompat.mjs";
+import { createEscompatLinter } from "../check-escompat.mjs";
 
 /** 실제 저장소 루트. seed lint의 가상 파일 경로와 소스 lint 구성 검증에만 쓴다. */
 export const realRepoRoot = fileURLToPath(new URL("../..", import.meta.url));
@@ -20,7 +20,7 @@ export const DIST_PATH = {
 };
 
 /**
- * 하한 75, ES2019를 주입한 실제 게이트 ESLint 인스턴스로 seed를 lint하고 규칙 ID 목록을 돌려준다.
+ * 하한 75, ES2019를 주입한 실제 게이트 linter로 seed를 lint하고 규칙 ID 목록을 돌려준다.
  *
  * @param {string} code
  * @param {"nonWeb" | "web"} area
@@ -31,8 +31,8 @@ export async function lintSeed(
   area,
   baseline = { chromeFloor: 75, esTarget: "ES2019" },
 ) {
-  const eslint = createEscompatESLint({ repoRoot: realRepoRoot, baseline });
-  const [result] = await eslint.lintText(code, { filePath: DIST_PATH[area] });
+  const linter = createEscompatLinter({ repoRoot: realRepoRoot, baseline });
+  const [result] = linter.lintText(code, { filePath: DIST_PATH[area] });
   return result.messages.map((message) => message.ruleId ?? "parse-error");
 }
 

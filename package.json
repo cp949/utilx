@@ -5,8 +5,8 @@
   "scripts": {
     "build": "pnpm --filter @cp949/utilx build",
     "lint": "pnpm --filter @cp949/utilx lint",
-    "format": "prettier --write \"**/*.{ts,mjs,js,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,mjs,js,json,md}\"",
+    "format": "oxfmt \"**/*.{ts,mjs,js,json,md}\"",
+    "format:check": "oxfmt --check \"**/*.{ts,mjs,js,json,md}\"",
     "check-types": "pnpm --filter @cp949/utilx check-types",
     "check-types:e2e": "tsc --noEmit -p e2e/tsconfig.json",
     "test": "pnpm --filter @cp949/utilx test",
@@ -25,20 +25,18 @@
     "release-it": "cd packages/utilx && release-it"
   },
   "devDependencies": {
-    "@eslint/js": "10.0.1",
-    "@playwright/test": "1.63.0",
+    "@playwright/test": "1.65.0",
     "@release-it/keep-a-changelog": "8.0.1",
     "@types/node": "24.13.6",
     "esbuild": "0.28.2",
-    "eslint": "10.11.0",
     "eslint-plugin-es-x": "9.7.0",
     "fast-check": "4.10.2",
-    "globals": "17.12.0",
-    "prettier": "3.9.8",
-    "release-it": "21.1.1",
+    "oxfmt": "0.78.0",
+    "oxlint": "1.93.0",
+    "oxlint-tsgolint": "7.0.2006",
+    "release-it": "21.1.2",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.70.1",
-    "vitest": "5.0.1"
+    "vitest": "5.1.0"
   },
   "engines": {
     "node": ">=24"

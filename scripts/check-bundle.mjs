@@ -29,13 +29,28 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 import { build, version as esbuildVersion } from "esbuild";
-import { format as formatWithPrettier, resolveConfig } from "prettier";
+import { format as formatWithOxfmt } from "oxfmt";
 import { loadBaseline } from "./baseline.mjs";
 import { createConsumerFromPackage } from "./pack.mjs";
 import { listPublishablePackages } from "./workspace-packages.mjs";
 
 /** 이 스크립트가 속한 저장소의 루트. */
 const defaultRepoRoot = fileURLToPath(new URL("..", import.meta.url));
+
+/**
+ * 저장소 루트의 `.oxfmtrc.json`에서 포맷 옵션을 읽는다. oxfmt의 `format()`은 설정 파일을 찾지 않아 직접 넘긴다.
+ * 파일이 없으면 기본 옵션을 쓴다. `$schema`와 `ignorePatterns`는 포맷 옵션이 아니라서 뺀다.
+ */
+function readOxfmtOptions(repoRoot) {
+  let text;
+  try {
+    text = readFileSync(join(repoRoot, ".oxfmtrc.json"), "utf8");
+  } catch {
+    return {};
+  }
+  const { $schema, ignorePatterns, ...options } = JSON.parse(text);
+  return options;
+}
 
 /** 측정 결과를 기록하는 파일. 저장소 루트에 둔다. */
 export const BUNDLE_BASELINE_FILE = "bundle-baseline.json";
@@ -320,13 +335,19 @@ export async function runBundleCheck(repoRoot = defaultRepoRoot, options = {}) {
     }
 
     if (write) {
-      // `format:check`와 같은 결과가 되도록 저장소의 prettier 설정을 따른다.
+      // `format:check`와 같은 결과가 되도록 저장소의 oxfmt 설정을 따른다.
       const file = join(repoRoot, BUNDLE_BASELINE_FILE);
-      const text = await formatWithPrettier(JSON.stringify(actual), {
-        ...(await resolveConfig(file)),
-        filepath: file,
-      });
-      writeFileSync(file, text);
+      const { code, errors } = await formatWithOxfmt(
+        file,
+        JSON.stringify(actual),
+        readOxfmtOptions(repoRoot),
+      );
+      if (errors.length > 0) {
+        throw new Error(
+          `${BUNDLE_BASELINE_FILE} 포맷에 실패했다: ${errors.map((error) => error.message).join("; ")}`,
+        );
+      }
+      writeFileSync(file, code);
       return { ok: true, problems: [], notes: [], baseline: actual };
     }
 

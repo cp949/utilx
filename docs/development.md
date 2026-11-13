@@ -9,20 +9,20 @@ pnpm verify
 
 `pnpm verify`는 다음을 순서대로 실행한다.
 
-| 명령                   | 검사                                                                                                                                                                                                      |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm lint`            | ESLint. `src/**`의 Node 전역, `Math.random`, 외부 import 금지. DOM 전역은 `src/web`에서만 허용. `globalThis`·`window`·`self` 경유 접근과 `globalThis` 값 전달도 금지                                      |
-| `pnpm format:check`    | prettier                                                                                                                                                                                                  |
-| `pnpm build`           | `dist`를 지우고 `tsc`로 빌드                                                                                                                                                                              |
-| `pnpm check:escompat`  | `dist`가 `baseline.json`의 Chrome 하한(75)과 ES2019 기준을 만족하는지. `dist/web` 밖의 DOM 전역과 전역 객체 경유 접근도 검사                                                                              |
-| `pnpm check:deps`      | 소스와 tarball의 런타임 의존성이 0인지                                                                                                                                                                    |
-| `pnpm check:readme`    | 패키지 README가 루트 README와 byte 단위로 같은지, 루트 README에 상대 링크가 없는지. 원본은 루트 README이고 `pnpm sync:readme`로 맞춘다                                                                    |
-| `pnpm check:consumer`  | tarball을 임시 `node_modules`에 풀어 패키지 이름으로 소비. 파일 집합, exports, 상대 경로, DOM 없는 ESM import, TypeScript 컴파일(`nodenext`·`bundler`)                                                    |
-| `pnpm check:bundle`    | tarball을 esbuild로 번들해 `trim`·`moveItem`·`DisposableScope` 단일 import에 남은 모듈을 `bundle-baseline.json`과 대조. `sideEffects: false` 선언, 금지 디렉터리 모듈, 선언에 가려진 최상위 부작용도 검사 |
-| `pnpm test:gates`      | 위 게이트와 `baseline.json` 검증의 허용·금지 fixture 검사. 게이트가 위반을 실제로 잡는지 확인                                                                                                             |
-| `pnpm check-types`     | 소스와 테스트의 타입 검사                                                                                                                                                                                 |
-| `pnpm check-types:e2e` | 브라우저 검증 코드(`e2e/`, `playwright.config.ts`)의 타입 검사                                                                                                                                            |
-| `pnpm test`            | 단위 테스트와 성질 검사(`test/property`). 성질 검사는 작은 입력 공간을 전수 열거하며 난수를 쓰지 않는다                                                                                                   |
+| 명령                   | 검사                                                                                                                                                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm lint`            | oxlint(type-aware). `src/**`의 Node 전역, `Math.random`, 외부 import 금지. DOM 전역은 `src/web`에서만 허용. `globalThis`·`window`·`self` 경유 접근과 `globalThis` 값 전달도 금지                                        |
+| `pnpm format:check`    | oxfmt                                                                                                                                                                                                                   |
+| `pnpm build`           | `dist`를 지우고 `tsc`로 빌드                                                                                                                                                                                            |
+| `pnpm check:escompat`  | oxlint와 `eslint-plugin-es-x`로 `dist`가 `baseline.json`의 Chrome 하한(75)과 ES2019 기준을 만족하는지. `eslint-disable`·`oxlint-disable` 주석으로 우회할 수 없다. `dist/web` 밖의 DOM 전역과 전역 객체 경유 접근도 검사 |
+| `pnpm check:deps`      | 소스와 tarball의 런타임 의존성이 0인지                                                                                                                                                                                  |
+| `pnpm check:readme`    | 패키지 README가 루트 README와 byte 단위로 같은지, 루트 README에 상대 링크가 없는지. 원본은 루트 README이고 `pnpm sync:readme`로 맞춘다                                                                                  |
+| `pnpm check:consumer`  | tarball을 임시 `node_modules`에 풀어 패키지 이름으로 소비. 파일 집합, exports, 상대 경로, DOM 없는 ESM import, TypeScript 컴파일(`nodenext`·`bundler`)                                                                  |
+| `pnpm check:bundle`    | tarball을 esbuild로 번들해 `trim`·`moveItem`·`DisposableScope` 단일 import에 남은 모듈을 `bundle-baseline.json`과 대조. `sideEffects: false` 선언, 금지 디렉터리 모듈, 선언에 가려진 최상위 부작용도 검사               |
+| `pnpm test:gates`      | 위 게이트와 `baseline.json` 검증의 허용·금지 fixture 검사. 게이트가 위반을 실제로 잡는지 확인                                                                                                                           |
+| `pnpm check-types`     | 소스와 테스트의 타입 검사                                                                                                                                                                                               |
+| `pnpm check-types:e2e` | 브라우저 검증 코드(`e2e/`, `playwright.config.ts`)의 타입 검사                                                                                                                                                          |
+| `pnpm test`            | 단위 테스트와 성질 검사(`test/property`). 성질 검사는 작은 입력 공간을 전수 열거하며 난수를 쓰지 않는다                                                                                                                 |
 
 ## 큰 탐색
 

@@ -1,5 +1,7 @@
 /**
- * 라이브러리 소스와 배포물 게이트(`scripts/check-escompat.mjs`)가 함께 쓰는 환경 제한 규칙.
+ * 라이브러리 소스(oxlint, `packages/utilx/oxlint.config.ts`)와 배포물 게이트(`scripts/check-escompat.mjs`)가
+ * 함께 쓰는 환경 제한 규칙. 둘 다 oxlint로 실행한다. oxlint에 없는 `no-restricted-syntax`는 `lint/oxlint-plugin.js`가
+ * 같은 옵션으로 제공하며, 규칙 이름은 `toOxlintRules`로 옮긴다.
  *
  * - `src/**`는 Node 전역, Chrome 75에 없는 API, `Math.random`, 외부 import를 쓰지 못한다.
  * - DOM 전역(window, document 등)은 `src/web/**`에서만 허용한다.
@@ -156,7 +158,7 @@ const restrictedImports = [
 /**
  * `web`을 제외한 소스에 적용하는 규칙.
  *
- * @type {import("eslint").Linter.RulesRecord}
+ * @type {Record<string, unknown[]>}
  */
 export const restrictedRules = {
   "no-restricted-globals": ["error", ...commonGlobals, ...domGlobals],
@@ -172,10 +174,25 @@ export const restrictedRules = {
 /**
  * `web` subpath에 적용하는 규칙. DOM 전역과 `globalThis`의 DOM 접근만 풀고 나머지는 같다.
  *
- * @type {import("eslint").Linter.RulesRecord}
+ * @type {Record<string, unknown[]>}
  */
 export const webRestrictedRules = {
   ...restrictedRules,
   "no-restricted-globals": ["error", ...commonGlobals],
   "no-restricted-syntax": ["error", ...restrictedSyntax],
 };
+
+/**
+ * 규칙 모음을 oxlint 설정에 쓰는 이름으로 옮긴다. `no-restricted-syntax`는 로컬 plugin(`repo`)의 규칙으로 바꾸고
+ * 나머지는 oxlint 내장 규칙 이름과 같아서 그대로 둔다.
+ *
+ * @param {Record<string, unknown[]>} rules
+ * @returns {Record<string, unknown[]>}
+ */
+export const toOxlintRules = (rules) =>
+  Object.fromEntries(
+    Object.entries(rules).map(([name, value]) => [
+      name === "no-restricted-syntax" ? "repo/no-restricted-syntax" : name,
+      value,
+    ]),
+  );

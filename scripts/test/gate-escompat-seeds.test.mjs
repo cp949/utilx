@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { loadBaseline } from "../baseline.mjs";
+import { neutralizeInlineConfig } from "../check-escompat.mjs";
 import { lintSeed, realRepoRoot } from "./helpers.mjs";
 
 // [이름, 코드, 경로, 기대 규칙 ID]
@@ -284,6 +285,52 @@ describe("escompat 게이트: 금지 seed", () => {
       "nonWeb",
     );
     assert.deepEqual(ruleIds, ["no-restricted-globals"]);
+  });
+});
+
+describe("escompat 게이트: 인라인 설정 주석 우회", () => {
+  const dom = "export const r = () => document.title;";
+
+  for (const [name, code] of [
+    ["oxlint-disable 블록 주석", `/* oxlint-disable */\n${dom}`],
+    ["oxlint-disable-next-line", `// oxlint-disable-next-line\n${dom}`],
+    ["oxlint-disable-line", `${dom} // oxlint-disable-line`],
+    [
+      "규칙을 지정한 eslint-disable-line",
+      `${dom} // eslint-disable-line no-restricted-globals`,
+    ],
+    ["공백 없는 블록 주석", `/*eslint-disable*/\n${dom}`],
+    ["대문자 지시어", `/* ESLint-Disable */\n${dom}`],
+    [
+      "eslint-disable 뒤 eslint-enable",
+      `/* eslint-disable */\n/* eslint-enable */\n${dom}`,
+    ],
+    ["global 지시어", `/* global document */\n${dom}`],
+    ["globals 지시어", `/* globals document */\n${dom}`],
+  ]) {
+    it(`${name}으로 DOM 전역을 숨기지 못한다`, async () => {
+      const ruleIds = await lintSeed(code, "nonWeb");
+      assert.ok(
+        ruleIds.includes("no-restricted-globals"),
+        `기대 규칙 no-restricted-globals, 실제 ${ruleIds}`,
+      );
+    });
+  }
+
+  it("하한 초과 API도 oxlint-disable로 숨기지 못한다", async () => {
+    const ruleIds = await lintSeed(
+      "/* oxlint-disable */\nexport const r = (a) => a.at(0);",
+      "nonWeb",
+    );
+    assert.ok(ruleIds.includes("es-x/no-array-prototype-at"));
+  });
+
+  it("무력화는 줄과 열 위치를 바꾸지 않는다", () => {
+    const text = "/* eslint-disable */ // oxlint-disable-line\nconst a = 1;";
+    const masked = neutralizeInlineConfig(text);
+    assert.equal(masked.length, text.length);
+    assert.equal(masked.split("\n").length, text.split("\n").length);
+    assert.doesNotMatch(masked, /eslint|oxlint/i);
   });
 });
 
