@@ -29,13 +29,13 @@
     "@release-it/keep-a-changelog": "8.0.1",
     "@types/node": "24.13.6",
     "esbuild": "0.28.2",
-    "eslint-plugin-es-x": "9.7.0",
+    "eslint-plugin-es-x": "10.1.0",
     "fast-check": "4.10.2",
     "oxfmt": "0.78.0",
     "oxlint": "1.93.0",
     "oxlint-tsgolint": "7.0.2006",
     "release-it": "21.1.2",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "vitest": "5.1.0"
   },
   "engines": {
