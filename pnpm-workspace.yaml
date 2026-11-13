@@ -2,3 +2,17 @@ packages:
   - "packages/*"
 allowBuilds:
   esbuild: true
+# es-x는 eslint를 타입 주석으로만 참조한다. oxlint JS plugin으로 쓰므로 eslint를 설치하지 않는다.
+packageExtensions:
+  eslint-plugin-es-x:
+    peerDependenciesMeta:
+      eslint:
+        optional: true
+  "@eslint-community/eslint-utils":
+    peerDependenciesMeta:
+      eslint:
+        optional: true
+  eslint-type-tracer:
+    peerDependenciesMeta:
+      eslint:
+        optional: true
