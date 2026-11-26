@@ -9,6 +9,9 @@ export type PermissionMode = "none" | "granted" | "denied";
 /** 비보안 컨텍스트 검증용 origin. `playwright.config.ts`의 host-resolver 규칙과 짝이다. */
 export const INSECURE_ORIGIN = "http://insecure.test:4601";
 
+/** `Element.checkVisibility`가 생긴 Chromium major. */
+const CHECK_VISIBILITY_MAJOR = 105;
+
 /** 내려받은 파일. 브라우저가 디스크에 저장한 실제 파일명과 내용이다. */
 export interface DownloadedFile {
   fileName: string;
@@ -64,6 +67,18 @@ interface Fixtures {
 
 export const test = base.extend<Fixtures>({
   permissionMode: ["none", { option: true }],
+
+  // Playwright 1.65의 클릭 전 검사는 `element.checkVisibility()`를 호출한다. 이 API가 없는 브라우저에서는
+  // `page.click`의 검사를 `force`로 건너뛴다. 입력은 실제 마우스 이벤트라 user activation이 유지된다.
+  // `locator.click`, `locator.evaluate` 같은 locator 조작은 이 우회를 거치지 않아 같은 에러로 실패한다.
+  page: async ({ page, browser }, use) => {
+    if (Number.parseInt(browser.version(), 10) < CHECK_VISIBILITY_MAJOR) {
+      const click = page.click.bind(page);
+      page.click = (selector, options) =>
+        click(selector, { ...options, force: true });
+    }
+    await use(page);
+  },
 
   openHarness: async ({ page, baseURL }, use) => {
     await use(async (origin = baseURL) => {

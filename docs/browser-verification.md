@@ -34,6 +34,15 @@ pnpm test:browser:chrome83   # Chrome 83 컨테이너(podman 필요)
 | 클립보드        | 3           | 권한 허용(쓰기 후 읽기), 권한 거부, 비보안 origin                                                                                                      |
 | 프레임 완료     | 2           | 동기 코드 이후·먼저 등록한 rAF 콜백 이후 완료, `await`마다 프레임 1회 이상 경과                                                                        |
 
+## 클릭 검증 방식
+
+Playwright 1.65의 클릭 전 검사는 `element.checkVisibility()`를 호출한다. Chrome 83에는 이 API가 없다.
+
+- Chromium 105 미만에서는 `e2e/fixtures.ts`가 `page.click`에 `force: true`를 붙인다.
+- `chrome83`은 보임·활성·가려짐 같은 클릭 전 검사를 하지 않는다. `chromium-latest`는 검사를 유지한다.
+- 클릭 입력은 실제 마우스 이벤트다. 클립보드와 다운로드에 필요한 user activation이 유지된다.
+- `locator.click`, `locator.evaluate` 같은 locator 조작은 `chrome83`에서 같은 에러로 실패한다. 새 시나리오의 클릭은 `page.click`을 쓴다.
+
 ## 다운로드 검증 방식
 
 Chrome 83에는 Playwright가 쓰는 CDP 이벤트 `Browser.downloadWillBegin`이 없어 `download` 이벤트가 오지 않는다. 두 project가 같은 경로를 쓰도록 `e2e/fixtures.ts`의 `captureDownload`가 CDP `Browser.setDownloadBehavior`로 저장 위치를 임시 디렉터리로 정하고, 브라우저가 디스크에 저장한 파일의 이름과 바이트를 읽는다. 파일명은 브라우저가 실제로 정한 값이다.
