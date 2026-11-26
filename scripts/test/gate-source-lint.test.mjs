@@ -98,7 +98,7 @@ describe("소스 lint 구성의 환경 제한 연결", () => {
   };
 
   const globalNames = (config) =>
-    config["no-restricted-globals"][1].map((entry) => entry.name);
+    config["no-restricted-globals"].slice(1).map((entry) => entry.name);
 
   it("src 일반 경로는 환경 제한 규칙 4개를 error로 적용한다", () => {
     const config = overrideRules("src/**/*.ts");
@@ -135,7 +135,7 @@ describe("소스 lint 구성의 환경 제한 연결", () => {
       const config = overrideRules(pattern);
       for (const rule of rules) {
         assert.deepEqual(
-          config[oxlintRuleName(rule)][1],
+          config[oxlintRuleName(rule)].slice(1),
           expected[rule].slice(1),
           `${pattern}의 ${rule} 옵션이 lint/restricted-rules.js와 다르다`,
         );
