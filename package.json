@@ -2,6 +2,7 @@
   "name": "utilx",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@12.15.0",
   "scripts": {
     "build": "pnpm --filter @cp949/utilx build",
     "lint": "pnpm --filter @cp949/utilx lint",

@@ -48,18 +48,32 @@ Chrome 75는 실행하지 않는다. Playwright가 Chrome 82 이상을 요구하
 
 ## 배포
 
-`main` 또는 `dev` 브랜치의 루트에서 실행한다. 루트 script가 `packages/utilx`로 이동해 release-it을 실행한다. 설정은 `packages/utilx/.release-it.json`에 있다.
+`main` 브랜치의 루트에서 실행한다. 루트 script가 `packages/utilx`로 이동해 release-it을 실행한다. 설정은 `packages/utilx/.release-it.json`에 있다. npm 배포는 release-it이 아니라 태그 push로 실행되는 `.github/workflows/release.yml`이 한다.
 
 ```sh
 GITHUB_TOKEN=$(gh auth token) pnpm release-it
 ```
 
-1. `pnpm verify`를 실행하고 npm 인증을 확인한다.
+1. `pnpm verify`를 실행한다.
 2. 새 버전을 고르면 `packages/utilx/package.json`의 version을 올리고, 루트 `CHANGELOG.md`의 `## [Unreleased]`를 `## [<version>] - <날짜>`로 바꾼다. 위에는 빈 `## [Unreleased]`를 다시 만든다.
-3. `pnpm publish`로 npm에 배포한다. npm이 OTP를 요구하면 입력을 묻고 다시 시도한다. 같은 버전이 이미 있으면 실패하고 커밋·태그를 만들지 않는다.
-4. `chore: v<version> 배포` 커밋, `v<version>` 태그를 만들어 push하고 GitHub Release를 만든다. 본문은 CHANGELOG의 해당 버전 항목이다.
+3. `chore: v<version> 배포` 커밋, `v<version>` 태그를 만들어 push하고 GitHub Release를 만든다. 본문은 CHANGELOG의 해당 버전 항목이다.
+4. 태그 push가 `release.yml`을 실행한다. 이 워크플로가 `pnpm verify` 뒤에 `npm publish --provenance`로 배포한다.
+
+GitHub Release는 npm 배포보다 먼저 만들어진다. 배포 성공은 Actions의 `Release` 실행 결과로 확인한다. 브라우저 검증은 워크플로에 없다. 필요하면 배포 전에 로컬에서 실행한다.
 
 배포 전에 `## [Unreleased]` 아래에 변경 내역을 적는다. 비어 있으면 버전을 고르기 전에 실패한다. `GITHUB_TOKEN`이 없으면 GitHub Release는 웹 화면 링크로 대신한다. `pnpm release-it --dry-run`은 hook과 파일 변경 없이 절차만 출력한다.
+
+### CI 배포 설정
+
+| 항목                   | 값                                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------------ |
+| 인증                   | npm trusted publishing(OIDC). npm 토큰을 쓰지 않는다                                             |
+| trusted publisher 등록 | npmjs.com의 `@cp949/utilx` 설정에 저장소 `cp949/utilx`, 워크플로 파일명 `release.yml`을 등록한다 |
+| 배포 중단 조건         | 태그 커밋이 `main`에 없다. 태그와 `package.json` 버전이 다르다. `pnpm verify`가 실패한다         |
+| 수동 실행              | 배포하지 않는다. `pnpm verify`와 `npm pack --dry-run`만 실행한다                                 |
+| PR, `main` push        | `release-readiness.yml`이 `pnpm verify`와 `npm pack --dry-run`을 실행한다. 배포하지 않는다       |
+
+배포 워크플로가 실패하면 원인을 고친 뒤 Actions에서 실패한 실행을 다시 돌린다. 태그의 커밋을 바꿔야 하면 새 버전으로 배포한다.
 
 ## 소스 파일 규칙
 

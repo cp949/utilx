@@ -5,15 +5,13 @@
     "before:git:release": "git add ../../CHANGELOG.md"
   },
   "git": {
-    "requireBranch": ["main", "dev"],
+    "requireBranch": "main",
     "commitMessage": "chore: v${version} 배포",
     "tagName": "v${version}",
     "tagAnnotation": "v${version}"
   },
   "npm": {
-    "publish": true,
-    "publishPackageManager": "pnpm",
-    "publishArgs": ["--no-git-checks"]
+    "publish": false
   },
   "github": {
     "release": true,

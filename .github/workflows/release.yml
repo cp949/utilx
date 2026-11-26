@@ -1,0 +1,73 @@
+name: Release
+
+# v* 태그 push에서 @cp949/utilx를 npm에 배포한다.
+# npm 토큰 없이 trusted publishing(OIDC)으로 인증한다.
+# npmjs.com 패키지 설정의 trusted publisher에 저장소 cp949/utilx와 이 파일명(release.yml)이
+# 등록돼 있어야 한다. 파일명을 바꾸면 등록도 바꾼다.
+# 수동 실행(workflow_dispatch)은 배포 없이 검증과 패키지 내용 확인만 한다.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish @cp949/utilx
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # main 포함 여부를 확인하려면 전체 이력이 필요하다.
+          fetch-depth: 0
+
+      - name: Enable corepack
+        run: corepack enable
+
+      # trusted publishing은 npm CLI 11.5.1 이상이 필요하다. Node 24에 번들된 npm을 쓴다.
+      # registry-url은 지정하지 않는다. 지정하면 토큰 자리표시자가 담긴 .npmrc가 만들어져 OIDC 인증을 가린다.
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.21.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # main에 병합되지 않은 커밋의 태그는 배포하지 않는다.
+      - name: Check tag commit is on main
+        if: github.ref_type == 'tag'
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      # 태그와 package.json 버전이 다르면 배포하지 않는다.
+      - name: Check tag matches package version
+        if: github.ref_type == 'tag'
+        run: test "$GITHUB_REF_NAME" = "v$(node -p "require('./packages/utilx/package.json').version")"
+
+      # 빌드를 포함한다. 배포 단계는 여기서 만든 dist를 올린다.
+      - name: Verify release gates
+        run: pnpm verify
+
+      # 태그 push에서만 실제로 배포한다.
+      - name: Publish
+        if: github.ref_type == 'tag'
+        working-directory: packages/utilx
+        run: npm publish --provenance --access public
+
+      # npm publish --dry-run은 이미 배포한 버전에서 실패한다. 수동 실행은 패키지 내용만 확인한다.
+      - name: Check package contents (dry-run)
+        if: github.ref_type != 'tag'
+        working-directory: packages/utilx
+        run: npm pack --dry-run
